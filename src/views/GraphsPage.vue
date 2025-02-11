@@ -2,33 +2,52 @@
   <div class="graphs-page">
     <aside class="sidebar"></aside>
     <main class="content" @click="openNodePopup">
-      <div v-for="(node, index) in nodes" :key="index" class="node" :style="{ top: node.y + 'px', left: node.x + 'px', backgroundColor: node.color }">
+      <div
+        v-for="(node, index) in nodes"
+        :key="index"
+        class="node"
+        :style="{ top: node.y + 'px', left: node.x + 'px', backgroundColor: node.color }"
+        @click.stop="confirmDeleteNode(index)"
+      >
         {{ node.name }}
       </div>
     </main>
+
     <footer class="bottom-bar">
       <button class="menu-button add-button" :class="{ active: isAddingNode }" @click="toggleAddNode" title="Agregar nodo">
         <i class="fas fa-plus"></i>
       </button>
-      <button class="menu-button delete-button" title="Eliminar">
+      <button class="menu-button delete-button" :class="{ active: isDeletingNode }" @click="toggleDeleteMode" title="Eliminar nodo">
         <i class="fas fa-trash"></i>
       </button>
-      <button class="menu-button move-button" title="Mover">
+      <button class="menu-button move-button" title="Mover nodo">
         <i class="fas fa-arrows-alt"></i>
       </button>
     </footer>
-    
+
+    <!-- Modal para agregar nodo -->
     <div v-if="showPopup" class="popup">
       <div class="popup-content">
         <label>Nombre del nodo:</label>
-        <input type="text" v-model="nodeName" placeholder="Ingrese nombre..."/>
+        <input type="text" v-model="nodeName" placeholder="Ingrese nombre..." />
         <label>Color del nodo:</label>
         <div class="color-picker-container">
-          <input type="color" v-model="nodeColor" @change="closeColorPicker" class="color-picker"/>
+          <input type="color" v-model="nodeColor" @change="closeColorPicker" class="color-picker" />
         </div>
         <div class="popup-buttons">
           <button class="cancel-button" @click="cancelPopup">Cancelar</button>
           <button class="accept-button" @click="confirmNode">Aceptar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para confirmar eliminación -->
+    <div v-if="showDeletePopup" class="popup">
+      <div class="popup-content">
+        <p>¿Seguro que deseas eliminar este nodo?</p>
+        <div class="popup-buttons">
+          <button class="cancel-button" @click="cancelDelete">Cancelar</button>
+          <button class="accept-button" @click="deleteNode">Eliminar</button>
         </div>
       </div>
     </div>
@@ -41,16 +60,24 @@ export default {
   data() {
     return {
       isAddingNode: false,
+      isDeletingNode: false, // Nuevo estado para eliminar nodos
       nodes: [],
       showPopup: false,
+      showDeletePopup: false,
       nodeName: '',
       nodeColor: '#ff0000',
-      tempNodePosition: { x: 0, y: 0 }
+      tempNodePosition: { x: 0, y: 0 },
+      nodeToDelete: null
     };
   },
   methods: {
     toggleAddNode() {
       this.isAddingNode = !this.isAddingNode;
+      this.isDeletingNode = false; // Desactiva la opción de eliminar si se activa añadir
+    },
+    toggleDeleteMode() {
+      this.isDeletingNode = !this.isDeletingNode;
+      this.isAddingNode = false; // Desactiva la opción de añadir si se activa eliminar
     },
     openNodePopup(event) {
       if (this.isAddingNode) {
@@ -78,6 +105,23 @@ export default {
       this.showPopup = false;
       this.nodeName = '';
       this.nodeColor = '#ff0000';
+    },
+    confirmDeleteNode(index) {
+      if (this.isDeletingNode) {
+        this.nodeToDelete = index;
+        this.showDeletePopup = true;
+      }
+    },
+    deleteNode() {
+      if (this.nodeToDelete !== null) {
+        this.nodes.splice(this.nodeToDelete, 1);
+        this.nodeToDelete = null;
+        this.showDeletePopup = false;
+      }
+    },
+    cancelDelete() {
+      this.showDeletePopup = false;
+      this.nodeToDelete = null;
     }
   }
 };
@@ -126,7 +170,7 @@ export default {
   font-weight: bold;
   text-align: center;
   font-family: Arial, sans-serif;
-
+  cursor: pointer;
 }
 
 .bottom-bar {
@@ -180,7 +224,6 @@ export default {
   text-align: center;
   animation: fadeIn 0.3s ease-in-out;
   font-family: Arial, sans-serif;
-
 }
 
 .popup-content {
@@ -201,6 +244,7 @@ export default {
   border-radius: 5px;
   transition: background 0.3s;
 }
+
 .cancel-button {
   background: #4fb0d9;
   color: white;
@@ -218,32 +262,7 @@ export default {
 .accept-button:hover {
   background: #884394;
 }
-.styled-input {
-  padding: 8px;
-  border-radius: 20px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  text-align: center;
-}
-.color-picker-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-.color-picker {
-  border-radius: none;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-}
 
-.color-preview {
-  width: 40px;
-  height: 40px;
-  border-radius: 5px;
-  border: 2px solid #000;
-}
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -253,44 +272,5 @@ export default {
     opacity: 1;
     transform: translate(-50%, -50%);
   }
-}
-.add-button:hover::after {
-  content: 'Agregar nodo';
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-.delete-button:hover::after {
-  content: 'Eliminar nodo';
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-.move-button:hover::after {
-  content: 'Mover nodo';
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
 }
 </style>
