@@ -37,3 +37,8 @@ npm run build
 ```sh
 npm run lint
 ```
+
+### Fontawesome
+
+```sh
+npm install @fortawesome/fontawesome-free```
