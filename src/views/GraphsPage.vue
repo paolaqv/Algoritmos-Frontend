@@ -272,7 +272,7 @@ export default {
   display: flex;
   width: 95vw;
   height: 95vh;
-  background: #2d5c88;
+  background: #41658A;
   position: absolute;      
   top: 50%;               
   left: 50%;               
@@ -284,7 +284,7 @@ export default {
 .sidebar {
   width: 150px;
   height: 60%;
-  background: #1b3a5a;
+  background: #F0B67F;
   margin: 20px;
   margin-top: 70px;
   border-radius: 10px;
@@ -292,7 +292,7 @@ export default {
 
 .content {
   flex-grow: 1;
-  background: #f7f7f7;
+  background: #C7EFCF;
   margin: 20px;
   padding: 20px;
   margin-bottom: 100px;
@@ -309,7 +309,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
+  color: #D6D1B1;
   font-size: 12px;
   font-weight: bold;
   text-align: center;
@@ -320,7 +320,7 @@ export default {
 
 .bottom-bar {
   height: 50px;
-  background: #1b3a5a;
+  background: #F0B67F;
   position: absolute;
   bottom: 20px;
   left: 57%;
@@ -354,7 +354,7 @@ export default {
 }
 
 .menu-button.active {
-  background: #d776e4;
+  background: #C7EFCF;
 }
 
 .popup {
@@ -362,7 +362,7 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgb(123, 160, 191);
+  background: #ebe5c1;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
@@ -396,16 +396,16 @@ export default {
 }
 
 .cancel-button:hover {
-  background: #4087ce;
+  background: #41658A;
 }
 
 .accept-button {
-  background: #aa5cb8;
+  background: #F0B67F;
   color: white;
 }
 
 .accept-button:hover {
-  background: #884394;
+  background: #E26A2C;
 }
 
 .styled-input {
@@ -508,7 +508,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  border: 1px solid rgb(243, 244, 246);
+  border: 1px solid rgb(246, 243, 243);
   border-radius: 20px;
   pointer-events: none;
 }
