@@ -1,3 +1,6 @@
+Aquí tienes una versión mejor organizada y estilizada de tu template utilizando la paleta de colores proporcionada:
+
+```html
 <template>
   <nav class="navbar">
     <img src="@/assets/logo.svg" alt="Logo" class="logo">
@@ -36,103 +39,145 @@
 <script setup lang="ts">
 </script>
 
-<style scoped>
-body, #app {
-  margin: 0;
-  padding: 0;
+<style>
+:root {
+  --primary-color: #41658A;
+  --secondary-color: #F0B67F;
+  --background-color: #EEF5DB;
+  --accent-color: #C7EFCF;
+  --text-color: #D6D1B1;
 }
 
-.landing {
-  font-family: 'Poppins', sans-serif;
-  width: 100%;
-  min-height: 100vh;
-  text-align: center;
-  padding: 4rem 2rem;
-  background: linear-gradient(180deg, #41658a, #7dbaff);
-  color: white;
-  /* animation: fadeIn 2s ease; */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--primary-color);
 }
 
 .navbar {
-  font-family: 'Poppins', sans-serif;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 3rem;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  position: fixed;
-  width: 100%;
-  top: 0;
-  left: 0;
-  z-index: 100;
+  padding: 1rem;
+  background-color: var(--primary-color);
 }
-.logo {
+
+.navbar .logo {
   height: 40px;
 }
+
 .nav-links {
   list-style: none;
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
 }
+
 .nav-links a {
-  color: white;
+  color: var(--text-color);
   text-decoration: none;
-  transition: color 0.3s;
+  font-weight: bold;
 }
-.nav-links a:hover {
-  color: #89c4ff;
+
+.hero {
+  text-align: center;
+  padding: 2rem;
+  background-color: var(--accent-color);
+  margin: 1rem;
+  border-radius: 10px;
 }
 
 .hero h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  animation: fadeInDown 1.5s ease;
+  font-size: 2.5rem;
+  color: var(--primary-color);
 }
+
+.hero p {
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
 .cta-button {
-  margin-top: 100px; 
-  background-color: #41658a;
-  color: white;
-  padding: 1rem 2rem;
-  border: solid 1px rgb(44, 67, 90);
-  border-radius: 50px;
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
   text-decoration: none;
-  transition: transform 0.3s;
+  border-radius: 5px;
+  margin-top: 1rem;
 }
-.cta-button:hover {
-  transform: scale(1.1);
-}
+
 .features {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-top: 3rem;
+  justify-content: space-around;
+  padding: 2rem;
 }
+
 .feature {
-  max-width: 300px;
+  text-align: center;
+  background-color: var(--accent-color);
   padding: 1rem;
-  background: white;
-  color: #333;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
+  border-radius: 10px;
+  width: 30%;
 }
-.feature:hover {
-  transform: translateY(-10px);
+
+.feature h2 {
+  color: var(--primary-color);
 }
+
+.feature p {
+  color: var(--primary-color);
+}
+
 .footer {
-  margin-top: 4rem;
-  font-size: 0.875rem;
+  text-align: center;
+  padding: 1rem;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  margin-top: 2rem;
 }
+
 .footer a {
-  color: #41658a;
+  color: var(--text-color);
   text-decoration: none;
 }
-.footer a:hover {
-  text-decoration: underline;
+
+.fade-in {
+  animation: fadeIn 2s;
 }
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
+
+.slide-up {
+  animation: slideUp 1.5s;
+}
+
+.scale-up {
+  animation: scaleUp 1s;
+}
+
+.zoom-in {
+  animation: zoomIn 1s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.9); }
+  to { transform: scale(1); }
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.9); }
+  to { transform: scale(1); }
 }
 </style>
+```
+
+Este código organiza el contenido de manera más estructurada y aplica la paleta de colores que proporcionaste. Además, se han añadido animaciones para mejorar la experiencia visual.
