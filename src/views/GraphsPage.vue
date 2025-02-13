@@ -7,7 +7,7 @@
         :key="index"
         class="node"
         :style="{ top: node.y + 'px', left: node.x + 'px', backgroundColor: node.color }"
-        @click.stop="selectNode(node)"
+        @click.stop="handleNodeClick(node, index)"
       >
         {{ node.name }}
       </div>
@@ -39,6 +39,7 @@
         </g>
       </svg>
     </main>
+
     <footer class="bottom-bar">
       <button class="menu-button add-button" :class="{ active: isAddingNode }" @click="toggleAddNode" title="Agregar nodo">
         <i class="fas fa-plus"></i>
@@ -46,10 +47,15 @@
       <button class="menu-button link-button" :class="{ active: isLinking }" @click="toggleLinking" title="Enlazar">
         <i class="fas fa-link"></i>
       </button>
-      <button class="menu-button delete-button" title="Eliminar">
+      <button 
+        class="menu-button delete-button" 
+          :class="{ active: isDeletingNode }"
+          @click="toggleDeleteMode" 
+          title="Eliminar"
+          >
         <i class="fas fa-trash"></i>
       </button>
-      <button class="menu-button move-button" title="Mover">
+      <button class="menu-button move-button" title="Mover nodo">
         <i class="fas fa-arrows-alt"></i>
       </button>
     </footer>
@@ -58,10 +64,10 @@
     <div v-if="showPopup" class="popup">
       <div class="popup-content">
         <label>Nombre del nodo:</label>
-        <input type="text" v-model="nodeName" placeholder="Ingrese nombre..."/>
+        <input type="text" v-model="nodeName" placeholder="Ingrese nombre..." />
         <label>Color del nodo:</label>
         <div class="color-picker-container">
-          <input type="color" v-model="nodeColor" @change="closeColorPicker" class="color-picker"/>
+          <input type="color" v-model="nodeColor" @change="closeColorPicker" class="color-picker" />
         </div>
         <div class="popup-buttons">
           <button class="cancel-button" @click="cancelPopup">Cancelar</button>
@@ -91,6 +97,16 @@
         </div>
       </div>
     </div>
+    <!-- Modal para confirmar eliminación -->
+    <div v-if="showDeletePopup" class="popup">
+      <div class="popup-content">
+        <p>¿Seguro que deseas eliminar este nodo?</p>
+        <div class="popup-buttons">
+          <button class="cancel-button" @click="cancelDelete">Cancelar</button>
+          <button class="accept-button" @click="deleteNode">Eliminar</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -101,6 +117,7 @@ export default {
     return {
       isAddingNode: false,
       isLinking: false,
+      isDeletingNode: false, // Nuevo estado para eliminar nodos
       nodes: [],
       edges: [],
       selectedNodes: [],
@@ -109,12 +126,28 @@ export default {
       edgeDirection: 'directed', 
       edgeColor: '#000000',
       showPopup: false,
+      showDeletePopup: false,
       nodeName: '',
       nodeColor: '#ff0000',
-      tempNodePosition: { x: 0, y: 0 }
+      tempNodePosition: { x: 0, y: 0 },
+      nodeToDelete: null
     };
   },
   methods: {
+    handleNodeClick(node, index) {
+      // Si estás en modo eliminar, se llama a la función de borrado
+      if (this.isDeletingNode) {
+        this.confirmDeleteNode(index);
+      } 
+      // Si estás en modo enlazar/seleccionar, llama a selectNode
+      else if (this.isLinking) {
+        this.selectNode(node);
+      } 
+      // Si quieres contemplar otros modos, agrégalos aquí
+      else {
+        console.log("Click en nodo, pero no estamos en modo eliminar ni enlazar.");
+      }
+    },
     //calculo del radio para arista
     calculateEdgePosition(node1, node2) {
       const radius = 22.5; 
@@ -131,10 +164,21 @@ export default {
     },
     toggleAddNode() {
       this.isAddingNode = !this.isAddingNode;
+      this.isDeletingNode = false; // Desactiva la opción de eliminar si se activa añadir
+    },
+    toggleDeleteMode() {
+      this.isDeletingNode = !this.isDeletingNode;
+      this.isAddingNode = false; // Desactiva la opción de añadir si se activa eliminar
+      this.isLinking = false;
+
     },
     toggleLinking() {
       this.isLinking = !this.isLinking;
       this.selectedNodes = [];
+      this.isAddingNode = false;
+      this.isAddingNode = false;
+
+
     },
     //seleccionar 2 nodos para la arista y popup
     selectNode(node) {
@@ -201,6 +245,23 @@ export default {
       this.showPopup = false;
       this.nodeName = '';
       this.nodeColor = '#ff0000';
+    },
+    confirmDeleteNode(index) {
+      if (this.isDeletingNode) {
+        this.nodeToDelete = index;
+        this.showDeletePopup = true;
+      }
+    },
+    deleteNode() {
+      if (this.nodeToDelete !== null) {
+        this.nodes.splice(this.nodeToDelete, 1);
+        this.nodeToDelete = null;
+        this.showDeletePopup = false;
+      }
+    },
+    cancelDelete() {
+      this.showDeletePopup = false;
+      this.nodeToDelete = null;
     }
   }
 };
@@ -253,7 +314,9 @@ export default {
   font-weight: bold;
   text-align: center;
   font-family: Arial, sans-serif;
+  cursor: pointer;
 }
+
 
 .bottom-bar {
   height: 50px;
