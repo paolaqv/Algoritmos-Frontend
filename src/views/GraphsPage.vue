@@ -7,6 +7,9 @@
         :key="index"
         class="node"
         :style="{ top: node.y + 'px', left: node.x + 'px', backgroundColor: node.color }"
+        @mousedown="startDrag($event, node)"
+        @mouseup="endDrag"
+        @mousemove="onDrag"
         @click.stop="handleNodeClick(node, index)"
       >
         {{ node.name }}
@@ -55,7 +58,12 @@
           >
         <i class="fas fa-trash"></i>
       </button>
-      <button class="menu-button move-button" title="Mover nodo">
+      <button
+        class="menu-button move-button"
+        :class="{ active: isMovingNode }"
+        @click="toggleMoveMode"
+        title="Mover nodo"
+        >
         <i class="fas fa-arrows-alt"></i>
       </button>
     </footer>
@@ -117,7 +125,7 @@ export default {
     return {
       isAddingNode: false,
       isLinking: false,
-      isDeletingNode: false, // Nuevo estado para eliminar nodos
+      isDeletingNode: false,
       nodes: [],
       edges: [],
       selectedNodes: [],
@@ -130,7 +138,11 @@ export default {
       nodeName: '',
       nodeColor: '#ff0000',
       tempNodePosition: { x: 0, y: 0 },
-      nodeToDelete: null
+      nodeToDelete: null,
+      draggingNode: null,
+      offsetX: 0,
+      offsetY: 0,
+      isMovingNode: false
     };
   },
   methods: {
@@ -177,9 +189,15 @@ export default {
       this.selectedNodes = [];
       this.isAddingNode = false;
       this.isAddingNode = false;
-
-
     },
+
+    toggleMoveMode() {
+      this.isMovingNode = !this.isMovingNode;
+      this.isAddingNode = false;
+      this.isDeletingNode = false;
+      this.isLinking = false;
+    },
+    
     //seleccionar 2 nodos para la arista y popup
     selectNode(node) {
       if (this.isLinking) {
@@ -254,7 +272,15 @@ export default {
     },
     deleteNode() {
       if (this.nodeToDelete !== null) {
+        const deletedNode = this.nodes[this.nodeToDelete];
+
         this.nodes.splice(this.nodeToDelete, 1);
+        this.edges = this.edges.filter(edge => {
+          return !(
+            (edge.node1.x === deletedNode.x && edge.node1.y === deletedNode.y) ||
+            (edge.node2.x === deletedNode.x && edge.node2.y === deletedNode.y)
+          );
+        });
         this.nodeToDelete = null;
         this.showDeletePopup = false;
       }
@@ -262,7 +288,37 @@ export default {
     cancelDelete() {
       this.showDeletePopup = false;
       this.nodeToDelete = null;
-    }
+    },
+
+    startDrag(event, node) {
+      if (this.isMovingNode) {
+        this.draggingNode = node;
+        this.offsetX = event.clientX - node.x;
+        this.offsetY = event.clientY - node.y;
+      }
+    },
+
+    onDrag(event) {
+      if (this.draggingNode) {
+        this.draggingNode.x = event.clientX - this.offsetX;
+        this.draggingNode.y = event.clientY - this.offsetY;
+
+        this.edges.forEach(edge => {
+          if (edge.node1 === this.draggingNode || edge.node2 === this.draggingNode) {
+            edge.calculated = this.calculateEdgePosition(
+              this.nodes.find(n => n.x === edge.node1.x && n.y === edge.node1.y),
+              this.nodes.find(n => n.x === edge.node2.x && n.y === edge.node2.y)
+            );
+          }
+        });
+      }
+    },
+
+    // Stop dragging
+    endDrag() {
+      this.draggingNode = null;
+    },
+
   }
 };
 </script>
