@@ -1,6 +1,3 @@
-Aquí tienes una versión mejor organizada y estilizada de tu template utilizando la paleta de colores proporcionada:
-
-```html
 <template>
   <nav class="navbar">
     <img src="@/assets/logo.svg" alt="Logo" class="logo">
@@ -178,6 +175,3 @@ body {
   to { transform: scale(1); }
 }
 </style>
-```
-
-Este código organiza el contenido de manera más estructurada y aplica la paleta de colores que proporcionaste. Además, se han añadido animaciones para mejorar la experiencia visual.

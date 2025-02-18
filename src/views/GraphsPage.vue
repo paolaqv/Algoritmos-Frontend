@@ -67,6 +67,13 @@
         <i class="fas fa-arrows-alt"></i>
       </button>
     </footer>
+      <!-- Botones de Importar y Exportar en la esquina inferior izquierda -->
+      <div class="import-export-buttons">
+      <button class="menu-button import-button" @click="importData">Importar</button>
+      <button class="menu-button export-button" @click="exportData">Exportar</button>
+    </div>
+    <!-- Input oculto para importar el archivo JSON -->
+<input type="file" ref="fileInput" @change="handleFileImport" accept=".json" style="display: none;" />
     
     <!-- Popup para agregar nodo -->
     <div v-if="showPopup" class="popup">
@@ -147,15 +154,12 @@ export default {
   },
   methods: {
     handleNodeClick(node, index) {
-      // Si estás en modo eliminar, se llama a la función de borrado
       if (this.isDeletingNode) {
         this.confirmDeleteNode(index);
       } 
-      // Si estás en modo enlazar/seleccionar, llama a selectNode
       else if (this.isLinking) {
         this.selectNode(node);
       } 
-      // Si quieres contemplar otros modos, agrégalos aquí
       else {
         console.log("Click en nodo, pero no estamos en modo eliminar ni enlazar.");
       }
@@ -176,11 +180,11 @@ export default {
     },
     toggleAddNode() {
       this.isAddingNode = !this.isAddingNode;
-      this.isDeletingNode = false; // Desactiva la opción de eliminar si se activa añadir
+      this.isDeletingNode = false; 
     },
     toggleDeleteMode() {
       this.isDeletingNode = !this.isDeletingNode;
-      this.isAddingNode = false; // Desactiva la opción de añadir si se activa eliminar
+      this.isAddingNode = false; 
       this.isLinking = false;
 
     },
@@ -225,14 +229,15 @@ export default {
 
         const calculatedPositions = this.calculateEdgePosition(node1, node2);
 
-        this.edges.push({
-          node1: { x: node1.x, y: node1.y },
-          node2: { x: node2.x, y: node2.y },
-          weight: this.edgeWeight,
-          direction: this.edgeDirection,
-          color: this.edgeColor,
-          calculated: calculatedPositions
-        });
+        // Guarda los nodos por referencia
+    this.edges.push({
+      node1,           // en lugar de { x: node1.x, y: node1.y }
+      node2,           // en lugar de { x: node2.x, y: node2.y }
+      weight: this.edgeWeight,
+      direction: this.edgeDirection,
+      color: this.edgeColor,
+      calculated: calculatedPositions
+    });
       }
       this.showEdgePopup = false;
       this.selectedNodes = [];
@@ -303,14 +308,12 @@ export default {
         this.draggingNode.x = event.clientX - this.offsetX;
         this.draggingNode.y = event.clientY - this.offsetY;
 
-        this.edges.forEach(edge => {
-          if (edge.node1 === this.draggingNode || edge.node2 === this.draggingNode) {
-            edge.calculated = this.calculateEdgePosition(
-              this.nodes.find(n => n.x === edge.node1.x && n.y === edge.node1.y),
-              this.nodes.find(n => n.x === edge.node2.x && n.y === edge.node2.y)
-            );
-          }
-        });
+        // Para cada arista que conecte al nodo que se está moviendo, recalcula su posición
+    this.edges.forEach(edge => {
+      if (edge.node1 === this.draggingNode || edge.node2 === this.draggingNode) {
+        edge.calculated = this.calculateEdgePosition(edge.node1, edge.node2);
+      }
+    });
       }
     },
 
@@ -318,7 +321,64 @@ export default {
     endDrag() {
       this.draggingNode = null;
     },
+     // Métodos para Importar y Exportar
+     importData() {
+    this.$refs.fileInput.click();
+  },
 
+  // Procesa el archivo seleccionado
+  handleFileImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.nodes && data.edges) {
+          // Actualiza el grafo con los datos importados
+          this.nodes = data.nodes;
+          this.edges = data.edges;
+          console.log("Grafo importado exitosamente");
+        } else {
+          console.error("El archivo JSON no tiene el formato correcto.");
+        }
+      } catch (error) {
+        console.error("Error al importar el archivo JSON:", error);
+      }
+    };
+    reader.readAsText(file);
+  },
+
+    exportData() {
+  // Crea un objeto con la información del grafo.
+  const data = {
+    nodes: this.nodes,
+    edges: this.edges
+  };
+
+  // Convierte el objeto a una cadena JSON formateada.
+  const jsonString = JSON.stringify(data, null, 2);
+
+  // Crea un Blob con el contenido JSON.
+  const blob = new Blob([jsonString], { type: "application/json" });
+
+  // Crea una URL temporal para el Blob.
+  const url = URL.createObjectURL(blob);
+
+  // Crea un elemento <a> para forzar la descarga.
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "graph-data.json";
+
+  // Agrega el enlace al documento, simula un clic y luego lo elimina.
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // Libera la URL temporal.
+  URL.revokeObjectURL(url);
+}
   }
 };
 </script>
@@ -348,7 +408,7 @@ export default {
 
 .content {
   flex-grow: 1;
-  background: #C7EFCF;
+  background: #e0f5e4;
   margin: 20px;
   padding: 20px;
   margin-bottom: 100px;
@@ -568,4 +628,37 @@ export default {
   border-radius: 20px;
   pointer-events: none;
 }
+.import-export-buttons {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.menu-button.import-button,
+.menu-button.export-button {
+  width: 90px;          /* Ajusta el ancho para que se acomode al texto */
+  height: 40px;         /* Altura adecuada para un botón interactivo */
+  background: #558ebc;  /* Color base coherente con el resto de los botones */
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.menu-button.import-button:hover,
+.menu-button.export-button:hover {
+  background: #4a78a2;
+  transform: scale(1.05);
+}
+
+.menu-button.import-button:active,
+.menu-button.export-button:active {
+  transform: scale(0.95);
+}
+
 </style>
