@@ -21,18 +21,19 @@
           </marker>
         </defs>
         <g v-for="(edge, index) in edges" :key="index">
-          <line
-            :x1="edge.calculated.x1"
-            :y1="edge.calculated.y1"
-            :x2="edge.calculated.x2"
-            :y2="edge.calculated.y2"
+          @click="handleEdgeClick(edge, index, $event)"
+          <path
+            :d="generateEdgePath(edge)"
             :stroke="edge.color"
+            fill="none"
             stroke-width="2"
             :marker-end="edge.direction === 'directed' ? 'url(#arrow)' : ''"
+            class="edge-path"
+            @click="handleEdgeClick(edge, index, $event)"
           />
           <text
-            :x="(edge.calculated.x1 + edge.calculated.x2) / 2"
-            :y="(edge.calculated.y1 + edge.calculated.y2) / 2 - 5"
+            :x="generateEdgeLabelPosition(edge).labelX"
+            :y="generateEdgeLabelPosition(edge).labelY"
             fill="black"
             font-size="12"
             text-anchor="middle"
@@ -44,10 +45,16 @@
     </main>
 
     <footer class="bottom-bar">
-      <button class="menu-button add-button" :class="{ active: isAddingNode }" @click="toggleAddNode" title="Agregar nodo">
+      <button class="menu-button add-button" 
+      :class="{ active: isAddingNode }"
+        @click="toggleAddNode" 
+        title="Agregar nodo">
         <i class="fas fa-plus"></i>
       </button>
-      <button class="menu-button link-button" :class="{ active: isLinking }" @click="toggleLinking" title="Enlazar">
+      <button class="menu-button link-button" 
+      :class="{ active: isLinking }" 
+        @click="toggleLinking" 
+        title="Enlazar">
         <i class="fas fa-link"></i>
       </button>
       <button 
@@ -66,16 +73,20 @@
         >
         <i class="fas fa-arrows-alt"></i>
       </button>
+      <button
+        class="menu-button edit-button"
+        :class="{ active: isEditing }"
+        @click="toggleEditingMode"
+        title="Editar"
+      >
+        <i class="fas fa-edit"></i>
+      </button>
     </footer>
-      <!-- Botones de Importar y Exportar en la esquina inferior izquierda -->
       <div class="import-export-buttons">
       <button class="menu-button import-button" @click="importData">Importar</button>
       <button class="menu-button export-button" @click="exportData">Exportar</button>
     </div>
-    <!-- Input oculto para importar el archivo JSON -->
-<input type="file" ref="fileInput" @change="handleFileImport" accept=".json" style="display: none;" />
-    
-    <!-- Popup para agregar nodo -->
+    <input type="file" ref="fileInput" @change="handleFileImport" accept=".json" style="display: none;" />
     <div v-if="showPopup" class="popup">
       <div class="popup-content">
         <label>Nombre del nodo:</label>
@@ -90,28 +101,56 @@
         </div>
       </div>
     </div>
-
-    <!-- Popup para agregar arista -->
     <div v-if="showEdgePopup" class="popup">
       <div class="popup-content">
         <label>Peso de la arista:</label>
         <input type="number" v-model="edgeWeight" placeholder="Ingrese peso..." />
-        
         <label>Dirección:</label>
         <select v-model="edgeDirection">
-          <option value="bidirectional">Bidireccional</option>
-          <option value="directed">Direccional</option>
+          <option value="directed">Dirigido</option>
+          <option value="undirected">No dirigido</option>
         </select>
-        
         <label>Color de la arista:</label>
         <input type="color" v-model="edgeColor" />
-        
         <div class="popup-buttons">
           <button class="cancel-button" @click="cancelEdgePopup">Cancelar</button>
           <button class="accept-button" @click="confirmEdge">Aceptar</button>
         </div>
       </div>
     </div>
+    <!-- Popup para editar nodo -->
+<div v-if="showEditNodePopup" class="popup">
+  <div class="popup-content">
+    <label>Nombre del nodo:</label>
+    <input type="text" v-model="editNodeName" placeholder="Ingrese nombre..." />
+    <label>Color del nodo:</label>
+    <div class="color-picker-container">
+      <input type="color" v-model="editNodeColor" class="color-picker" />
+    </div>
+    <div class="popup-buttons">
+      <button class="cancel-button" @click="cancelEditNode">Cancelar</button>
+      <button class="accept-button" @click="confirmEditNode">Aceptar</button>
+    </div>
+  </div>
+</div>
+<!-- Popup para editar arista -->
+<div v-if="showEditEdgePopup" class="popup">
+  <div class="popup-content">
+    <label>Peso de la arista:</label>
+    <input type="number" v-model="editEdgeWeight" placeholder="Ingrese peso..." />
+    <label>Dirección:</label>
+    <select v-model="editEdgeDirection">
+      <option value="directed">Dirigido</option>
+      <option value="undirected">No dirigido</option>
+    </select>
+    <label>Color de la arista:</label>
+    <input type="color" v-model="editEdgeColor" />
+    <div class="popup-buttons">
+      <button class="cancel-button" @click="cancelEditEdge">Cancelar</button>
+      <button class="accept-button" @click="confirmEditEdge">Aceptar</button>
+    </div>
+  </div>
+</div>
     <!-- Modal para confirmar eliminación -->
     <div v-if="showDeletePopup" class="popup">
       <div class="popup-content">
@@ -149,21 +188,36 @@ export default {
       draggingNode: null,
       offsetX: 0,
       offsetY: 0,
-      isMovingNode: false
+      isMovingNode: false,
+
+      isEditing: false, 
+      editingTarget: null, 
+      editingType: '',     
+      showEditNodePopup: false,
+      showEditEdgePopup: false,
+      editNodeName: '',
+      editNodeColor: '',
+      editNodeIndex: null,
+      editEdgeWeight: '',
+      editEdgeDirection: '',
+      editEdgeColor: '',
+      editEdgeIndex: null,
+        
     };
   },
   methods: {
-    handleNodeClick(node, index) {
-      if (this.isDeletingNode) {
-        this.confirmDeleteNode(index);
-      } 
-      else if (this.isLinking) {
-        this.selectNode(node);
-      } 
-      else {
-        console.log("Click en nodo, pero no estamos en modo eliminar ni enlazar.");
-      }
-    },
+    handleEdgeClick(edge, index, event) {
+    event.stopPropagation();
+    if (this.isEditing) {
+      this.editingTarget = edge;
+      this.editingType = 'edge';
+      this.editEdgeWeight = edge.weight;
+      this.editEdgeDirection = edge.direction;
+      this.editEdgeColor = edge.color;
+      this.editEdgeIndex = index;
+      this.showEditEdgePopup = true;
+    }
+  },
     //calculo del radio para arista
     calculateEdgePosition(node1, node2) {
       const radius = 22.5; 
@@ -178,21 +232,33 @@ export default {
         y2: node2.y - Math.sin(angle) * radius
       };
     },
+    generateEdgePath(edge) {
+  const { x1, y1, x2, y2 } = edge.calculated;
+  const offset = 20; //curva
+  const { cpX, cpY } = this.getControlPoint(x1, y1, x2, y2, offset);
+  return `M ${x1} ${y1} Q ${cpX} ${cpY} ${x2} ${y2}`;
+},
     toggleAddNode() {
       this.isAddingNode = !this.isAddingNode;
       this.isDeletingNode = false; 
+      this.isLinking = false;
+      this.isMovingNode = false;
+
     },
     toggleDeleteMode() {
       this.isDeletingNode = !this.isDeletingNode;
       this.isAddingNode = false; 
       this.isLinking = false;
+      this.isMovingNode = false;
+
 
     },
     toggleLinking() {
       this.isLinking = !this.isLinking;
       this.selectedNodes = [];
       this.isAddingNode = false;
-      this.isAddingNode = false;
+      this.isMovingNode = false;
+      this.isDeletingNode = false;
     },
 
     toggleMoveMode() {
@@ -201,6 +267,36 @@ export default {
       this.isDeletingNode = false;
       this.isLinking = false;
     },
+    toggleEditingMode() {
+  this.isEditing = !this.isEditing;
+  if (this.isEditing) {
+    this.isAddingNode = false;
+    this.isLinking = false;
+    this.isDeletingNode = false;
+    this.isMovingNode = false;
+  } else {
+    this.editingTarget = null;
+    this.editingType = '';
+  }
+},
+handleNodeClick(node, index) {
+  if (this.isEditing) {
+    this.editingTarget = node;
+    this.editingType = 'node';
+    this.editNodeName = node.name;
+    this.editNodeColor = node.color;
+    this.editNodeIndex = index;
+    this.showEditNodePopup = true;
+    return; 
+  }
+  if (this.isDeletingNode) {
+    this.confirmDeleteNode(index);
+  } else if (this.isLinking) {
+    this.selectNode(node);
+  } else {
+    console.log("Click en nodo, pero no estamos en modo eliminar ni enlazar.");
+  }
+},
     
     //seleccionar 2 nodos para la arista y popup
     selectNode(node) {
@@ -229,10 +325,9 @@ export default {
 
         const calculatedPositions = this.calculateEdgePosition(node1, node2);
 
-        // Guarda los nodos por referencia
     this.edges.push({
-      node1,           // en lugar de { x: node1.x, y: node1.y }
-      node2,           // en lugar de { x: node2.x, y: node2.y }
+      node1,          
+      node2,         
       weight: this.edgeWeight,
       direction: this.edgeDirection,
       color: this.edgeColor,
@@ -308,7 +403,6 @@ export default {
         this.draggingNode.x = event.clientX - this.offsetX;
         this.draggingNode.y = event.clientY - this.offsetY;
 
-        // Para cada arista que conecte al nodo que se está moviendo, recalcula su posición
     this.edges.forEach(edge => {
       if (edge.node1 === this.draggingNode || edge.node2 === this.draggingNode) {
         edge.calculated = this.calculateEdgePosition(edge.node1, edge.node2);
@@ -317,70 +411,111 @@ export default {
       }
     },
 
-    // Stop dragging
-    endDrag() {
-      this.draggingNode = null;
-    },
-     // Métodos para Importar y Exportar
-     importData() {
-    this.$refs.fileInput.click();
-  },
-
-  // Procesa el archivo seleccionado
-  handleFileImport(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (data.nodes && data.edges) {
-          // Actualiza el grafo con los datos importados
-          this.nodes = data.nodes;
-          this.edges = data.edges;
-          console.log("Grafo importado exitosamente");
-        } else {
-          console.error("El archivo JSON no tiene el formato correcto.");
-        }
-      } catch (error) {
-        console.error("Error al importar el archivo JSON:", error);
+    confirmEditNode() {
+      if (this.editNodeIndex !== null) {
+        this.nodes[this.editNodeIndex].name = this.editNodeName;
+        this.nodes[this.editNodeIndex].color = this.editNodeColor;
       }
-    };
-    reader.readAsText(file);
-  },
+      this.showEditNodePopup = false;
+      this.editingTarget = null;
+      this.editingType = '';
+      this.editNodeIndex = null;
+      this.editNodeName = '';
+      this.editNodeColor = '#ff0000';
+    },
+    cancelEditNode() {
+      this.showEditNodePopup = false;
+      this.editingTarget = null;
+      this.editingType = '';
+      this.editNodeIndex = null;
+    },
+    confirmEditEdge() {
+      if (this.editEdgeIndex !== null) {
+        this.edges[this.editEdgeIndex].weight = this.editEdgeWeight;
+        this.edges[this.editEdgeIndex].direction = this.editEdgeDirection;
+        this.edges[this.editEdgeIndex].color = this.editEdgeColor;
+      }
+      this.showEditEdgePopup = false;
+      this.editingTarget = null;
+      this.editingType = '';
+      this.editEdgeIndex = null;
+      this.editEdgeWeight = '1';
+      this.editEdgeDirection = 'directed';
+      this.editEdgeColor = '#000000';
+    },
+    cancelEditEdge() {
+      this.showEditEdgePopup = false;
+      this.editingTarget = null;
+      this.editingType = '';
+      this.editEdgeIndex = null;
+    },
+    endDrag() {
+      this.dragenerateggingNode = null;
+    },
+    importData() {
+    this.$refs.fileInput.click();
+    },
+
+    getControlPoint(x1, y1, x2, y2, offset) {
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy) || 1;
+    const nx = -dy / length;
+    const ny = dx / length;
+    return { cpX: midX + nx * offset, cpY: midY + ny * offset };
+    },
+    generateEdgeLabelPosition(edge) {
+      const { x1, y1, x2, y2 } = edge.calculated;
+      const offset = 20;
+      const { cpX, cpY } = this.getControlPoint(x1, y1, x2, y2, offset);
+      const labelX = 0.25 * x1 + 0.5 * cpX + 0.25 * x2;
+      const labelY = 0.25 * y1 + 0.5 * cpY + 0.25 * y2 - 10;
+      return { labelX, labelY };
+    },
+    handleFileImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.nodes && data.edges) {
+            // Actualiza el grafo con los datos importados
+            this.nodes = data.nodes;
+            this.edges = data.edges;
+            console.log("Grafo importado exitosamente");
+          } else {
+            console.error("El archivo JSON no tiene el formato correcto.");
+          }
+        } catch (error) {
+          console.error("Error al importar el archivo JSON:", error);
+        }
+      };
+      reader.readAsText(file);
+    },
 
     exportData() {
-  // Crea un objeto con la información del grafo.
-  const data = {
-    nodes: this.nodes,
-    edges: this.edges
+        const data = {
+        nodes: this.nodes,
+        edges: this.edges
+      };
+
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "graph-data.json";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+    }
   };
-
-  // Convierte el objeto a una cadena JSON formateada.
-  const jsonString = JSON.stringify(data, null, 2);
-
-  // Crea un Blob con el contenido JSON.
-  const blob = new Blob([jsonString], { type: "application/json" });
-
-  // Crea una URL temporal para el Blob.
-  const url = URL.createObjectURL(blob);
-
-  // Crea un elemento <a> para forzar la descarga.
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "graph-data.json";
-
-  // Agrega el enlace al documento, simula un clic y luego lo elimina.
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  // Libera la URL temporal.
-  URL.revokeObjectURL(url);
-}
-  }
-};
 </script>
 
 <style scoped>
@@ -660,5 +795,16 @@ export default {
 .menu-button.export-button:active {
   transform: scale(0.95);
 }
+
+.edge-path {
+  pointer-events: stroke;
+  transition: stroke 0.3s, stroke-width 0.3s;
+}
+.edge-path:hover {
+  stroke-width: 3;
+  /* Puedes cambiar el color o agregar otros efectos */
+  stroke: #ff0000;
+}
+
 
 </style>
