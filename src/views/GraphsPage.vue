@@ -1,7 +1,15 @@
 <template>
   <div class="graphs-page">
-    <aside class="sidebar"></aside>
-    <main class="content" @click="openNodePopup">
+    <aside class="sidebar">
+      <div class="sidebar-buttons">
+        <button class="sidebar-button"  @click="openMatrixPopup">matriz adyacente </button>
+        <button class="sidebar-button">Botón 2</button>
+        <button class="sidebar-button">Botón 3</button>
+        <button class="sidebar-button">Botón 4</button>
+      </div>
+    </aside>
+    <main ref="contentArea" class="content" @click="openNodePopup">
+      <!-- Nodos y aristas -->
       <div
         v-for="(node, index) in nodes"
         :key="index"
@@ -42,6 +50,18 @@
           </text>
         </g>
       </svg>
+      <!-- Popup para matriz de adyacencia -->
+      <div v-if="showMatrixPopup" class="matrix-popup" :style="matrixPopupStyle">
+        <div class="matrix-popup-header" @mousedown="onPopupHeaderMouseDown">
+          <span>Matriz de Adyacencia</span>
+          <button class="close-button" @click="closeMatrixPopup">X</button>
+        </div>
+        <div class="matrix-popup-content">
+          <!-- Aquí puedes colocar la visualización o contenido de la matriz -->
+          <p> matriz</p>
+        </div>
+        <div class="resizer" @mousedown="startResizing"></div>
+      </div>
     </main>
 
     <footer class="bottom-bar">
@@ -204,9 +224,91 @@ export default {
       editEdgeDirection: '',
       editEdgeColor: '',
       editEdgeIndex: null,
+      // Popup de matriz
+      showMatrixPopup: false,
+      matrixPopupStyle: {
+        top: '50px',
+        left: '50px',
+        width: '400px',
+        height: '300px'
+      },
+      isDraggingPopup: false,
+      dragOffsetX: 0,
+      dragOffsetY: 0,
+      isResizing: false,
+      resizeStartWidth: 0,
+      resizeStartHeight: 0,
+      resizeStartX: 0,
+      resizeStartY: 0,
     };
   },
   methods: {
+    // Métodos para la matriz de adyacencia
+    openMatrixPopup() {
+      this.showMatrixPopup = true;
+    },
+    closeMatrixPopup() {
+      this.showMatrixPopup = false;
+    },
+    onPopupHeaderMouseDown(event) {
+      this.isDraggingPopup = true;
+      // Se obtiene el rectángulo del popup y del área de contenido
+      const popupRect = event.currentTarget.parentElement.getBoundingClientRect();
+      this.dragOffsetX = event.clientX - popupRect.left;
+      this.dragOffsetY = event.clientY - popupRect.top;
+      document.addEventListener('mousemove', this.onPopupDrag);
+      document.addEventListener('mouseup', this.onPopupDragEnd);
+    },
+    onPopupDrag(event) {
+      if (this.isDraggingPopup) {
+        const contentRect = this.$refs.contentArea.getBoundingClientRect();
+        const popupWidth = parseInt(this.matrixPopupStyle.width);
+        const popupHeight = parseInt(this.matrixPopupStyle.height);
+        // Calculamos la posición relativa dentro del content
+        let newLeft = event.clientX - contentRect.left - this.dragOffsetX;
+        let newTop = event.clientY - contentRect.top - this.dragOffsetY;
+        // Limitar a la parte izquierda y superior
+        if (newLeft < 0) newLeft = 0;
+        if (newTop < 0) newTop = 0;
+        // Limitar al ancho y alto del content
+        if (newLeft + popupWidth > contentRect.width)
+          newLeft = contentRect.width - popupWidth;
+        if (newTop + popupHeight > contentRect.height)
+          newTop = contentRect.height - popupHeight;
+        this.matrixPopupStyle.left = newLeft + 'px';
+        this.matrixPopupStyle.top = newTop + 'px';
+      }
+    },
+    onPopupDragEnd() {
+      this.isDraggingPopup = false;
+      document.removeEventListener('mousemove', this.onPopupDrag);
+      document.removeEventListener('mouseup', this.onPopupDragEnd);
+    },
+    startResizing(event) {
+      this.isResizing = true;
+      this.resizeStartWidth = parseInt(this.matrixPopupStyle.width);
+      this.resizeStartHeight = parseInt(this.matrixPopupStyle.height);
+      this.resizeStartX = event.clientX;
+      this.resizeStartY = event.clientY;
+      document.addEventListener('mousemove', this.onResizing);
+      document.addEventListener('mouseup', this.stopResizing);
+      event.stopPropagation();
+    },
+    onResizing(event) {
+      if (this.isResizing) {
+        let newWidth = this.resizeStartWidth + (event.clientX - this.resizeStartX);
+        let newHeight = this.resizeStartHeight + (event.clientY - this.resizeStartY);
+        if (newWidth < 200) newWidth = 200;
+        if (newHeight < 150) newHeight = 150;
+        this.matrixPopupStyle.width = newWidth + 'px';
+        this.matrixPopupStyle.height = newHeight + 'px';
+      }
+    },
+    stopResizing() {
+      this.isResizing = false;
+      document.removeEventListener('mousemove', this.onResizing);
+      document.removeEventListener('mouseup', this.stopResizing);
+    },
     handleEdgeClick(edge, index, event) {
     event.stopPropagation();
     if (this.isEditing) {
@@ -501,7 +603,7 @@ handleNodeClick(node, index) {
       this.editEdgeIndex = null;
     },
     endDrag() {
-      this.dragenerateggingNode = null;
+      this.draggingNode  = null;
     },
     importData() {
     this.$refs.fileInput.click();
@@ -598,14 +700,6 @@ handleNodeClick(node, index) {
 }
 
 
-.sidebar {
-  width: 150px;
-  height: 60%;
-  background: #F0B67F;
-  margin: 20px;
-  margin-top: 70px;
-  border-radius: 10px;
-}
 
 .content {
   flex-grow: 1;
@@ -765,7 +859,6 @@ handleNodeClick(node, index) {
   }
 }
 
-/* Tooltips para los botones */
 .add-button:hover::after {
   content: 'Agregar nodo';
   position: absolute;
@@ -898,6 +991,79 @@ handleNodeClick(node, index) {
   stroke-width: 3;
   stroke: #ff0000;
 }
-
+/*sidebar*/
+.sidebar {
+  width: 150px;
+  height: 60%;
+  background: #F0B67F;
+  margin: 20px;
+  margin-top: 70px;
+  border-radius: 10px;
+  padding: 10px;
+}
+.sidebar-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 2cm);
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+.sidebar-button {
+  width: 2cm;
+  height: 2cm;
+  border: none;
+  border-radius: 10px;
+  background-color: #336699;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+.sidebar-button:hover {
+  background-color: #4a78a2;
+  transform: scale(1.05);
+}
+.sidebar-button:active {
+  transform: scale(0.95);
+}
+/* Estilos para el popup de matriz */
+.matrix-popup {
+  position: absolute;
+  background: white;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.matrix-popup-header {
+  background: #336699;
+  color: white;
+  padding: 8px;
+  cursor: move;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.close-button {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+.matrix-popup-content {
+  padding: 10px;
+  flex-grow: 1;
+  overflow: auto;
+}
+.resizer {
+  width: 15px;
+  height: 15px;
+  background: #ccc;
+  cursor: nwse-resize;
+  align-self: flex-end;
+}
 
 </style>
