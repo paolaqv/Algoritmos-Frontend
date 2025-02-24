@@ -81,6 +81,9 @@
       >
         <i class="fas fa-edit"></i>
       </button>
+      <button class="menu-button clear-button" @click="clearCanvas" title="Limpiar canvas">
+        <i class="fas fa-eraser"></i>
+      </button>
     </footer>
       <div class="import-export-buttons">
       <button class="menu-button import-button" @click="importData">Importar</button>
@@ -189,7 +192,6 @@ export default {
       offsetX: 0,
       offsetY: 0,
       isMovingNode: false,
-
       isEditing: false, 
       editingTarget: null, 
       editingType: '',     
@@ -202,7 +204,6 @@ export default {
       editEdgeDirection: '',
       editEdgeColor: '',
       editEdgeIndex: null,
-        
     };
   },
   methods: {
@@ -513,7 +514,13 @@ handleNodeClick(node, index) {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-      }
+      },
+
+      clearCanvas() {
+      this.nodes = [];
+      this.edges = [];
+      this.selectedNodes = [];
+    },
     }
   };
 </script>
@@ -741,6 +748,34 @@ handleNodeClick(node, index) {
 }
 .link-button:hover::after {
   content: 'Enlazar nodos';
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.edit-button:hover::after {
+  content: 'Editar nodos';
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.clear-button:hover::after {
+  content: 'Limpiar canvas';
   position: absolute;
   bottom: 50px;
   left: 50%;
