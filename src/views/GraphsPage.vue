@@ -221,24 +221,67 @@ export default {
   },
     //calculo del radio para arista
     calculateEdgePosition(node1, node2) {
-      const radius = 22.5; 
-      const dx = node2.x - node1.x;
-      const dy = node2.y - node1.y;
-      const angle = Math.atan2(dy, dx);
-
-      return {
-        x1: node1.x + Math.cos(angle) * radius,
-        y1: node1.y + Math.sin(angle) * radius,
-        x2: node2.x - Math.cos(angle) * radius,
-        y2: node2.y - Math.sin(angle) * radius
-      };
-    },
-    generateEdgePath(edge) {
-  const { x1, y1, x2, y2 } = edge.calculated;
-  const offset = 20; //curva
-  const { cpX, cpY } = this.getControlPoint(x1, y1, x2, y2, offset);
-  return `M ${x1} ${y1} Q ${cpX} ${cpY} ${x2} ${y2}`;
+  const radius = 22.5;
+  if (node1 === node2) {
+    let selfLoopCount = this.edges.filter(e => e.node1 === node1 && e.node2 === node1).length;
+    let offsetFactor = 20 + selfLoopCount * 10; 
+    return {
+      selfLoop: true,
+      x1: node1.x + radius,
+      y1: node1.y,
+      x2: node1.x,
+      y2: node1.y - radius,
+      offset: offsetFactor
+    };
+  }
+  const dx = node2.x - node1.x;
+  const dy = node2.y - node1.y;
+  const angle = Math.atan2(dy, dx);
+  return {
+    x1: node1.x + Math.cos(angle) * radius,
+    y1: node1.y + Math.sin(angle) * radius,
+    x2: node2.x - Math.cos(angle) * radius,
+    y2: node2.y - Math.sin(angle) * radius
+  };
 },
+generateEdgePath(edge) {
+  if (edge.node1 === edge.node2) {
+    // Coordenadas del nodo
+    const { x1, y1 } = edge.calculated;
+    const nodeRadius = 22.5; 
+    const loopOffset = 50; 
+
+    // loop
+    const controlX1 = x1 + loopOffset;
+    const controlY1 = y1 - loopOffset * 1.5;
+    const controlX2 = x1 - loopOffset;
+    const controlY2 = y1 - loopOffset * 1.5;
+    
+    const angle = Math.PI * 5 / 3.8; 
+    const endX = x1 + Math.cos(angle) * nodeRadius;
+    const endY = y1 + Math.sin(angle) * nodeRadius;
+
+    return `M ${x1} ${y1} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`;
+  } else {
+    // Arista normal
+    const { x1, y1, x2, y2 } = edge.calculated;
+    const offset = 20;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy) || 1;
+    const nx = -dy / length;
+    const ny = dx / length;
+
+    const cp1x = x1 + (x2 - x1) / 3 + nx * offset;
+    const cp1y = y1 + (y2 - y1) / 3 + ny * offset;
+    const cp2x = x1 + 2 * (x2 - x1) / 3 + nx * offset;
+    const cp2y = y1 + 2 * (y2 - y1) / 3 + ny * offset;
+
+    edge.controlPoints = { cp1x, cp1y, cp2x, cp2y };
+    return `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
+  }
+},
+
     toggleAddNode() {
       this.isAddingNode = !this.isAddingNode;
       this.isDeletingNode = false; 
@@ -302,8 +345,15 @@ handleNodeClick(node, index) {
     //seleccionar 2 nodos para la arista y popup
     selectNode(node) {
       if (this.isLinking) {
-        if (!this.selectedNodes.includes(node)) {
+        if (this.selectedNodes.length === 0) {
           this.selectedNodes.push(node);
+        } else if (this.selectedNodes.length === 1) {
+          // Permitir self‑loop si se toca el mismo nodo
+          if (this.selectedNodes[0] === node) {
+            this.selectedNodes.push(node);
+          } else if (!this.selectedNodes.includes(node)) {
+            this.selectedNodes.push(node);
+          }
         }
         if (this.selectedNodes.length === 2) {
           this.showEdgePopup = true;
@@ -468,13 +518,23 @@ handleNodeClick(node, index) {
     return { cpX: midX + nx * offset, cpY: midY + ny * offset };
     },
     generateEdgeLabelPosition(edge) {
-      const { x1, y1, x2, y2 } = edge.calculated;
-      const offset = 20;
-      const { cpX, cpY } = this.getControlPoint(x1, y1, x2, y2, offset);
-      const labelX = 0.25 * x1 + 0.5 * cpX + 0.25 * x2;
-      const labelY = 0.25 * y1 + 0.5 * cpY + 0.25 * y2 - 10;
-      return { labelX, labelY };
-    },
+  if (edge.node1 === edge.node2) {
+    const { x1, y1, x2, y2, offset } = edge.calculated;
+    const cp1x = x1 + offset;
+    const cp1y = y1 - offset;
+    const cp2x = x2 - offset;
+    const cp2y = y2 - offset;
+    const labelX = 0.125 * x1 + 0.375 * cp1x + 0.375 * cp2x + 0.125 * x2;
+    const labelY = 0.125 * y1 + 0.375 * cp1y + 0.375 * cp2y + 0.125 * y2 - 10; // Se resta 10 para subir ligeramente el label
+    return { labelX, labelY };
+  } else {
+    const { x1, y1, x2, y2 } = edge.calculated;
+    const { cp1x, cp1y, cp2x, cp2y } = edge.controlPoints;
+    const labelX = 0.125 * x1 + 0.375 * cp1x + 0.375 * cp2x + 0.125 * x2;
+    const labelY = 0.125 * y1 + 0.375 * cp1y + 0.375 * cp2y + 0.125 * y2 - 10;
+    return { labelX, labelY };
+  }
+},
     handleFileImport(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -807,9 +867,9 @@ handleNodeClick(node, index) {
 
 .menu-button.import-button,
 .menu-button.export-button {
-  width: 90px;          /* Ajusta el ancho para que se acomode al texto */
-  height: 40px;         /* Altura adecuada para un botón interactivo */
-  background: #558ebc;  /* Color base coherente con el resto de los botones */
+  width: 90px;          
+  height: 40px;      
+  background: #558ebc;  
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -836,7 +896,6 @@ handleNodeClick(node, index) {
 }
 .edge-path:hover {
   stroke-width: 3;
-  /* Puedes cambiar el color o agregar otros efectos */
   stroke: #ff0000;
 }
 
