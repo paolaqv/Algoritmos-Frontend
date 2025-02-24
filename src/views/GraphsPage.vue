@@ -499,22 +499,21 @@ handleNodeClick(node, index) {
     },
 
     exportData() {
-        const data = {
-        nodes: this.nodes,
-        edges: this.edges
-      };
+      const jsonData = JSON.stringify({ nodes: this.nodes, edges: this.edges }, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
 
-        const jsonString = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonString], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "graph-data.json";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      },
+      const fileName = prompt("Ingrese un nombre para el archivo:", "graph_data.json");
+      if (!fileName) return;
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName.endsWith(".json") ? fileName : `${fileName}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    },
 
       clearCanvas() {
       this.nodes = [];
