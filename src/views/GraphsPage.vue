@@ -56,10 +56,13 @@
           <span>Matriz de Adyacencia</span>
           <button class="close-button" @click="closeMatrixPopup">X</button>
         </div>
-        <div class="matrix-popup-content">
-          <!-- Aquí puedes colocar la visualización o contenido de la matriz -->
-          <p> matriz</p>
-        </div>
+          <div class="matrix-popup-content">
+            <table border="1" cellspacing="0" cellpadding="5">
+              <tr v-for="(row, i) in adjacencyMatrix" :key="i">
+                <td v-for="(cell, j) in row" :key="j">{{ cell }}</td>
+              </tr>
+            </table>
+          </div>
         <div class="resizer" @mousedown="startResizing"></div>
       </div>
     </main>
@@ -188,6 +191,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   name: 'GraphsPage',
   data() {
@@ -240,19 +244,28 @@ export default {
       resizeStartHeight: 0,
       resizeStartX: 0,
       resizeStartY: 0,
+      //matriz recibida
+      adjacencyMatrix: []  
     };
   },
   methods: {
-    // Métodos para la matriz de adyacencia
-    openMatrixPopup() {
-      this.showMatrixPopup = true;
-    },
+    async openMatrixPopup() {
+  try {
+    const response = await axios.post('http://127.0.0.1:5000/graph/adjacency_matrix', {
+      nodes: this.nodes,
+      edges: this.edges
+    });
+    this.adjacencyMatrix = response.data.matrix;
+    this.showMatrixPopup = true;
+  } catch (error) {
+    console.error("Error al obtener la matriz de adyacencia:", error);
+  }
+},
     closeMatrixPopup() {
       this.showMatrixPopup = false;
     },
     onPopupHeaderMouseDown(event) {
       this.isDraggingPopup = true;
-      // Se obtiene el rectángulo del popup y del área de contenido
       const popupRect = event.currentTarget.parentElement.getBoundingClientRect();
       this.dragOffsetX = event.clientX - popupRect.left;
       this.dragOffsetY = event.clientY - popupRect.top;
