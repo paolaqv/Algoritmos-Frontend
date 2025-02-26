@@ -556,27 +556,41 @@ handleNodeClick(node, index) {
       this.nodeToDelete = null;
     },
 
-    startDrag(event, node) {
-      if (this.isMovingNode) {
-        this.draggingNode = node;
-        this.offsetX = event.clientX - node.x;
-        this.offsetY = event.clientY - node.y;
-      }
-    },
-
-    onDrag(event) {
-      if (this.draggingNode) {
-        this.draggingNode.x = event.clientX - this.offsetX;
-        this.draggingNode.y = event.clientY - this.offsetY;
-
-    this.edges.forEach(edge => {
-      if (edge.node1 === this.draggingNode || edge.node2 === this.draggingNode) {
-        edge.calculated = this.calculateEdgePosition(edge.node1, edge.node2);
-      }
-    });
-      }
-    },
-
+  startDrag(event, node) {
+    if (this.isMovingNode) {
+      const contentRect = this.$refs.contentArea.getBoundingClientRect();
+      this.offsetX = event.clientX - contentRect.left - node.x;
+      this.offsetY = event.clientY - contentRect.top - node.y;
+      this.draggingNode = node;
+      document.addEventListener('mousemove', this.onDrag);
+      document.addEventListener('mouseup', this.endDrag);
+    }
+  },
+  onDrag(event) {
+    if (this.draggingNode && this.isMovingNode) {
+      const contentRect = this.$refs.contentArea.getBoundingClientRect();
+      const nodeRadius = 22.5;
+      let newX = event.clientX - contentRect.left - this.offsetX;
+      let newY = event.clientY - contentRect.top - this.offsetY;
+      //distancia content/radio node
+      if (newX < nodeRadius) newX = nodeRadius;
+      if (newX > contentRect.width - nodeRadius) newX = contentRect.width - nodeRadius;
+      if (newY < nodeRadius) newY = nodeRadius;
+      if (newY > contentRect.height - nodeRadius) newY = contentRect.height - nodeRadius;
+      this.draggingNode.x = newX;
+      this.draggingNode.y = newY;
+      this.edges.forEach(edge => {
+        if (edge.node1 === this.draggingNode || edge.node2 === this.draggingNode) {
+          edge.calculated = this.calculateEdgePosition(edge.node1, edge.node2);
+        }
+      });
+    }
+  },
+  endDrag() {
+    this.draggingNode = null;
+    document.removeEventListener('mousemove', this.onDrag);
+    document.removeEventListener('mouseup', this.endDrag);
+  },
     confirmEditNode() {
       if (this.editNodeIndex !== null) {
         this.nodes[this.editNodeIndex].name = this.editNodeName;
@@ -615,41 +629,37 @@ handleNodeClick(node, index) {
       this.editingType = '';
       this.editEdgeIndex = null;
     },
-    endDrag() {
-      this.draggingNode  = null;
-    },
     importData() {
     this.$refs.fileInput.click();
     },
-
     getControlPoint(x1, y1, x2, y2, offset) {
-    const midX = (x1 + x2) / 2;
-    const midY = (y1 + y2) / 2;
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const length = Math.sqrt(dx * dx + dy * dy) || 1;
-    const nx = -dy / length;
-    const ny = dx / length;
-    return { cpX: midX + nx * offset, cpY: midY + ny * offset };
+      const midX = (x1 + x2) / 2;
+      const midY = (y1 + y2) / 2;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const length = Math.sqrt(dx * dx + dy * dy) || 1;
+      const nx = -dy / length;
+      const ny = dx / length;
+      return { cpX: midX + nx * offset, cpY: midY + ny * offset };
     },
     generateEdgeLabelPosition(edge) {
-  if (edge.node1 === edge.node2) {
-    const { x1, y1, x2, y2, offset } = edge.calculated;
-    const cp1x = x1 + offset;
-    const cp1y = y1 - offset;
-    const cp2x = x2 - offset;
-    const cp2y = y2 - offset;
-    const labelX = 0.125 * x1 + 0.375 * cp1x + 0.375 * cp2x + 0.125 * x2;
-    const labelY = 0.125 * y1 + 0.375 * cp1y + 0.375 * cp2y + 0.125 * y2 - 10; // Se resta 10 para subir ligeramente el label
-    return { labelX, labelY };
-  } else {
-    const { x1, y1, x2, y2 } = edge.calculated;
-    const { cp1x, cp1y, cp2x, cp2y } = edge.controlPoints;
-    const labelX = 0.125 * x1 + 0.375 * cp1x + 0.375 * cp2x + 0.125 * x2;
-    const labelY = 0.125 * y1 + 0.375 * cp1y + 0.375 * cp2y + 0.125 * y2 - 10;
-    return { labelX, labelY };
-  }
-},
+      if (edge.node1 === edge.node2) {
+        const { x1, y1, x2, y2, offset } = edge.calculated;
+        const cp1x = x1 + offset;
+        const cp1y = y1 - offset;
+        const cp2x = x2 - offset;
+        const cp2y = y2 - offset;
+        const labelX = 0.125 * x1 + 0.375 * cp1x + 0.375 * cp2x + 0.125 * x2;
+        const labelY = 0.125 * y1 + 0.375 * cp1y + 0.375 * cp2y + 0.125 * y2 - 10; // Se resta 10 para subir ligeramente el label
+        return { labelX, labelY };
+      } else {
+        const { x1, y1, x2, y2 } = edge.calculated;
+        const { cp1x, cp1y, cp2x, cp2y } = edge.controlPoints;
+        const labelX = 0.125 * x1 + 0.375 * cp1x + 0.375 * cp2x + 0.125 * x2;
+        const labelY = 0.125 * y1 + 0.375 * cp1y + 0.375 * cp2y + 0.125 * y2 - 10;
+        return { labelX, labelY };
+      }
+    },
     handleFileImport(event) {
       const file = event.target.files[0];
       if (!file) return;
