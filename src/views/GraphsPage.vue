@@ -56,10 +56,13 @@
           <span>Matriz de Adyacencia</span>
           <button class="close-button" @click="closeMatrixPopup">X</button>
         </div>
-        <div class="matrix-popup-content">
-          <!-- Aquí puedes colocar la visualización o contenido de la matriz -->
-          <p> matriz</p>
-        </div>
+          <div class="matrix-popup-content">
+            <table border="1" cellspacing="0" cellpadding="5">
+              <tr v-for="(row, i) in adjacencyMatrix" :key="i">
+                <td v-for="(cell, j) in row" :key="j">{{ cell }}</td>
+              </tr>
+            </table>
+          </div>
         <div class="resizer" @mousedown="startResizing"></div>
       </div>
     </main>
@@ -118,9 +121,9 @@
 
     </footer>
       <div class="import-export-buttons">
-      <button class="menu-button import-button" @click="importData">Importar</button>
-      <button class="menu-button export-button" @click="exportData">Exportar</button>
-    </div>
+        <button class="menu-button import-button" @click="importData">Importar</button>
+        <button class="menu-button export-button" @click="exportData">Exportar</button>
+      </div>
     <input type="file" ref="fileInput" @change="handleFileImport" accept=".json" style="display: none;" />
     <div v-if="showPopup" class="popup">
       <div class="popup-content">
@@ -201,14 +204,13 @@
 
 <script>
 import HelpView from './HelpView.vue';
+import axios from 'axios';
 
 export default {
   components: {
-    HelpView, // Añadir el componente aquí
+    HelpView,
   },
-
   
-
   name: 'GraphsPage',
   data() {
     return {
@@ -261,6 +263,8 @@ export default {
       resizeStartHeight: 0,
       resizeStartX: 0,
       resizeStartY: 0,
+      //matriz recibida
+      adjacencyMatrix: []  
     };
   },
   methods: {
@@ -271,12 +275,23 @@ export default {
     openMatrixPopup() {
       this.showMatrixPopup = true;
     },
+    async openMatrixPopup() {
+  try {
+    const response = await axios.post('http://127.0.0.1:5000/graph/adjacency_matrix', {
+      nodes: this.nodes,
+      edges: this.edges
+    });
+    this.adjacencyMatrix = response.data.matrix;
+    this.showMatrixPopup = true;
+  } catch (error) {
+    console.error("Error al obtener la matriz de adyacencia:", error);
+  }
+},
     closeMatrixPopup() {
       this.showMatrixPopup = false;
     },
     onPopupHeaderMouseDown(event) {
       this.isDraggingPopup = true;
-      // Se obtiene el rectángulo del popup y del área de contenido
       const popupRect = event.currentTarget.parentElement.getBoundingClientRect();
       this.dragOffsetX = event.clientX - popupRect.left;
       this.dragOffsetY = event.clientY - popupRect.top;
@@ -531,12 +546,14 @@ handleNodeClick(node, index) {
       this.showPopup = false;
     },
     confirmNode() {
-      this.nodes.push({
+      const newNode = {
+        id: Date.now(), // O utiliza alguna otra estrategia para generar un id único
         x: this.tempNodePosition.x,
         y: this.tempNodePosition.y,
         name: this.nodeName,
         color: this.nodeColor
-      });
+      };
+      this.nodes.push(newNode);
       this.showPopup = false;
       this.nodeName = '';
       this.nodeColor = '#ff0000';
@@ -567,27 +584,41 @@ handleNodeClick(node, index) {
       this.nodeToDelete = null;
     },
 
-    startDrag(event, node) {
-      if (this.isMovingNode) {
-        this.draggingNode = node;
-        this.offsetX = event.clientX - node.x;
-        this.offsetY = event.clientY - node.y;
-      }
-    },
-
-    onDrag(event) {
-      if (this.draggingNode) {
-        this.draggingNode.x = event.clientX - this.offsetX;
-        this.draggingNode.y = event.clientY - this.offsetY;
-
-    this.edges.forEach(edge => {
-      if (edge.node1 === this.draggingNode || edge.node2 === this.draggingNode) {
-        edge.calculated = this.calculateEdgePosition(edge.node1, edge.node2);
-      }
-    });
-      }
-    },
-
+  startDrag(event, node) {
+    if (this.isMovingNode) {
+      const contentRect = this.$refs.contentArea.getBoundingClientRect();
+      this.offsetX = event.clientX - contentRect.left - node.x;
+      this.offsetY = event.clientY - contentRect.top - node.y;
+      this.draggingNode = node;
+      document.addEventListener('mousemove', this.onDrag);
+      document.addEventListener('mouseup', this.endDrag);
+    }
+  },
+  onDrag(event) {
+    if (this.draggingNode && this.isMovingNode) {
+      const contentRect = this.$refs.contentArea.getBoundingClientRect();
+      const nodeRadius = 22.5;
+      let newX = event.clientX - contentRect.left - this.offsetX;
+      let newY = event.clientY - contentRect.top - this.offsetY;
+      //distancia content/radio node
+      if (newX < nodeRadius) newX = nodeRadius;
+      if (newX > contentRect.width - nodeRadius) newX = contentRect.width - nodeRadius;
+      if (newY < nodeRadius) newY = nodeRadius;
+      if (newY > contentRect.height - nodeRadius) newY = contentRect.height - nodeRadius;
+      this.draggingNode.x = newX;
+      this.draggingNode.y = newY;
+      this.edges.forEach(edge => {
+        if (edge.node1 === this.draggingNode || edge.node2 === this.draggingNode) {
+          edge.calculated = this.calculateEdgePosition(edge.node1, edge.node2);
+        }
+      });
+    }
+  },
+  endDrag() {
+    this.draggingNode = null;
+    document.removeEventListener('mousemove', this.onDrag);
+    document.removeEventListener('mouseup', this.endDrag);
+  },
     confirmEditNode() {
       if (this.editNodeIndex !== null) {
         this.nodes[this.editNodeIndex].name = this.editNodeName;
@@ -626,41 +657,37 @@ handleNodeClick(node, index) {
       this.editingType = '';
       this.editEdgeIndex = null;
     },
-    endDrag() {
-      this.draggingNode  = null;
-    },
     importData() {
     this.$refs.fileInput.click();
     },
-
     getControlPoint(x1, y1, x2, y2, offset) {
-    const midX = (x1 + x2) / 2;
-    const midY = (y1 + y2) / 2;
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const length = Math.sqrt(dx * dx + dy * dy) || 1;
-    const nx = -dy / length;
-    const ny = dx / length;
-    return { cpX: midX + nx * offset, cpY: midY + ny * offset };
+      const midX = (x1 + x2) / 2;
+      const midY = (y1 + y2) / 2;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const length = Math.sqrt(dx * dx + dy * dy) || 1;
+      const nx = -dy / length;
+      const ny = dx / length;
+      return { cpX: midX + nx * offset, cpY: midY + ny * offset };
     },
     generateEdgeLabelPosition(edge) {
-  if (edge.node1 === edge.node2) {
-    const { x1, y1, x2, y2, offset } = edge.calculated;
-    const cp1x = x1 + offset;
-    const cp1y = y1 - offset;
-    const cp2x = x2 - offset;
-    const cp2y = y2 - offset;
-    const labelX = 0.125 * x1 + 0.375 * cp1x + 0.375 * cp2x + 0.125 * x2;
-    const labelY = 0.125 * y1 + 0.375 * cp1y + 0.375 * cp2y + 0.125 * y2 - 10; // Se resta 10 para subir ligeramente el label
-    return { labelX, labelY };
-  } else {
-    const { x1, y1, x2, y2 } = edge.calculated;
-    const { cp1x, cp1y, cp2x, cp2y } = edge.controlPoints;
-    const labelX = 0.125 * x1 + 0.375 * cp1x + 0.375 * cp2x + 0.125 * x2;
-    const labelY = 0.125 * y1 + 0.375 * cp1y + 0.375 * cp2y + 0.125 * y2 - 10;
-    return { labelX, labelY };
-  }
-},
+      if (edge.node1 === edge.node2) {
+        const { x1, y1, x2, y2, offset } = edge.calculated;
+        const cp1x = x1 + offset;
+        const cp1y = y1 - offset;
+        const cp2x = x2 - offset;
+        const cp2y = y2 - offset;
+        const labelX = 0.125 * x1 + 0.375 * cp1x + 0.375 * cp2x + 0.125 * x2;
+        const labelY = 0.125 * y1 + 0.375 * cp1y + 0.375 * cp2y + 0.125 * y2 - 10; // Se resta 10 para subir ligeramente el label
+        return { labelX, labelY };
+      } else {
+        const { x1, y1, x2, y2 } = edge.calculated;
+        const { cp1x, cp1y, cp2x, cp2y } = edge.controlPoints;
+        const labelX = 0.125 * x1 + 0.375 * cp1x + 0.375 * cp2x + 0.125 * x2;
+        const labelY = 0.125 * y1 + 0.375 * cp1y + 0.375 * cp2y + 0.125 * y2 - 10;
+        return { labelX, labelY };
+      }
+    },
     handleFileImport(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -670,10 +697,23 @@ handleNodeClick(node, index) {
         try {
           const data = JSON.parse(e.target.result);
           if (data.nodes && data.edges) {
-            // Actualiza el grafo con los datos importados
             this.nodes = data.nodes;
-            this.edges = data.edges;
-            console.log("Grafo importado exitosamente");
+            // creacion de mapa para buscar nodos por su id
+            const nodeMap = {};
+            this.nodes.forEach(node => {
+              nodeMap[node.id] = node;
+            });
+            
+            // reasocia los nodos en cada arista y recalcula sus posiciones
+            this.edges = data.edges.map(edge => {
+              return {
+                ...edge,
+                node1: nodeMap[edge.node1.id],
+                node2: nodeMap[edge.node2.id],
+                calculated: this.calculateEdgePosition(nodeMap[edge.node1.id], nodeMap[edge.node2.id])
+              };
+            });
+          console.log("Grafo importado exitosamente");
           } else {
             console.error("El archivo JSON no tiene el formato correcto.");
           }
