@@ -104,6 +104,18 @@
       <button class="menu-button clear-button" @click="clearCanvas" title="Limpiar canvas">
         <i class="fas fa-eraser"></i>
       </button>
+          <!-- Mostrar HelpView cuando isHelpActive sea true -->
+    <HelpView v-if="isHelpActive" @close="toggleHelp" />
+
+      <!-- Botón Help -->
+      <button class="menu-button help-button" 
+              :class="{ active: isHelpActive }" 
+              @click="toggleHelp" 
+              title="Ayuda">
+        <i class="fas fa-question-circle"></i>
+      </button>
+
+
     </footer>
       <div class="import-export-buttons">
       <button class="menu-button import-button" @click="importData">Importar</button>
@@ -188,10 +200,19 @@
 </template>
 
 <script>
+import HelpView from './HelpView.vue';
+
 export default {
+  components: {
+    HelpView, // Añadir el componente aquí
+  },
+
+  
+
   name: 'GraphsPage',
   data() {
     return {
+      isHelpActive: false,
       isAddingNode: false,
       isLinking: false,
       isDeletingNode: false,
@@ -243,6 +264,9 @@ export default {
     };
   },
   methods: {
+    toggleHelp() {
+    this.isHelpActive = !this.isHelpActive; // Cambia el estado de isHelpActive
+    },
     // Métodos para la matriz de adyacencia
     openMatrixPopup() {
       this.showMatrixPopup = true;
@@ -686,384 +710,384 @@ handleNodeClick(node, index) {
   };
 </script>
 
-<style scoped>
-.graphs-page {
-  display: flex;
-  width: 95vw;
-  height: 95vh;
-  background: #41658A;
-  position: absolute;      
-  top: 50%;               
-  left: 50%;               
-  transform: translate(-50%, -50%);  
-  border-radius: 5px;
-}
-
-
-
-.content {
-  flex-grow: 1;
-  background: #e0f5e4;
-  margin: 20px;
-  padding: 20px;
-  margin-bottom: 100px;
-  border-radius: 10px;
-  position: relative;
-}
-
-.node {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #D6D1B1;
-  font-size: 12px;
-  font-weight: bold;
-  text-align: center;
-  font-family: Arial, sans-serif;
-  cursor: pointer;
-}
-
-
-.bottom-bar {
-  height: 50px;
-  background: #F0B67F;
-  position: absolute;
-  bottom: 20px;
-  left: 57%;
-  transform: translateX(-50%);
-  width: 70%;
-  border-radius: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-}
-
-.menu-button {
-  width: 40px;
-  height: 40px;
-  background: #336699;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  color: white;
-  position: relative;
-}
-
-.menu-button:hover {
-  background: #4a78a2;
-}
-
-.menu-button.active {
-  background: #C7EFCF;
-}
-
-.popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #ebe5c1;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  animation: fadeIn 0.3s ease-in-out;
-  font-family: Arial, sans-serif;
-}
-
-.popup-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.popup-buttons {
-  display: flex;
-  justify-content: space-between;
-}
-
-.popup-buttons button {
-  padding: 8px 15px;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
-  transition: background 0.3s;
-}
-
-.cancel-button {
-  background: #4fb0d9;
-  color: white;
-}
-
-.cancel-button:hover {
-  background: #41658A;
-}
-
-.accept-button {
-  background: #F0B67F;
-  color: white;
-}
-
-.accept-button:hover {
-  background: #E26A2C;
-}
-
-.styled-input {
-  padding: 8px;
-  border-radius: 20px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  text-align: center;
-}
-
-.color-picker-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.color-picker {
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-  border: none;
-}
-
-.color-preview {
-  width: 40px;
-  height: 40px;
-  border-radius: 5px;
-  border: 2px solid #000;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -60%);
+  <style scoped>
+  .graphs-page {
+    display: flex;
+    width: 95vw;
+    height: 95vh;
+    background: #41658A;
+    position: absolute;      
+    top: 50%;               
+    left: 50%;               
+    transform: translate(-50%, -50%);  
+    border-radius: 5px;
   }
-  to {
-    opacity: 1;
+
+
+
+  .content {
+    flex-grow: 1;
+    background: #e0f5e4;
+    margin: 20px;
+    padding: 20px;
+    margin-bottom: 100px;
+    border-radius: 10px;
+    position: relative;
+  }
+
+  .node {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    position: absolute;
     transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #D6D1B1;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
   }
-}
 
-.add-button:hover::after {
-  content: 'Agregar nodo';
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-.delete-button:hover::after {
-  content: 'Eliminar nodo';
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-.move-button:hover::after {
-  content: 'Mover nodo';
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-.link-button:hover::after {
-  content: 'Enlazar nodos';
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
 
-.edit-button:hover::after {
-  content: 'Editar nodos';
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
+  .bottom-bar {
+    height: 50px;
+    background: #F0B67F;
+    position: absolute;
+    bottom: 20px;
+    left: 57%;
+    transform: translateX(-50%);
+    width: 70%;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+  }
 
-.clear-button:hover::after {
-  content: 'Limpiar canvas';
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
+  .menu-button {
+    width: 40px;
+    height: 40px;
+    background: #336699;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: white;
+    position: relative;
+  }
 
-.edges {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: 1px solid rgb(246, 243, 243);
-  border-radius: 20px;
-  pointer-events: none;
-}
-.import-export-buttons {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  display: flex;
-  gap: 10px;
-}
+  .menu-button:hover {
+    background: #4a78a2;
+  }
 
-.menu-button.import-button,
-.menu-button.export-button {
-  width: 90px;          
-  height: 40px;      
-  background: #558ebc;  
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
-  font-size: 14px;
-  font-weight: bold;
-}
+  .menu-button.active {
+    background: #C7EFCF;
+  }
 
-.menu-button.import-button:hover,
-.menu-button.export-button:hover {
-  background: #4a78a2;
-  transform: scale(1.05);
-}
+  .popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ebe5c1;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+    font-family: Arial, sans-serif;
+  }
 
-.menu-button.import-button:active,
-.menu-button.export-button:active {
-  transform: scale(0.95);
-}
+  .popup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 
-.edge-path {
-  pointer-events: stroke;
-  transition: stroke 0.3s, stroke-width 0.3s;
-}
-.edge-path:hover {
-  stroke-width: 3;
-  stroke: #ff0000;
-}
-/*sidebar*/
-.sidebar {
-  width: 150px;
-  height: 60%;
-  background: #F0B67F;
-  margin: 20px;
-  margin-top: 70px;
-  border-radius: 10px;
-  padding: 10px;
-}
-.sidebar-buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 2cm);
-  gap: 10px;
-  justify-content: center;
-  margin-top: 10px;
-}
-.sidebar-button {
-  width: 2cm;
-  height: 2cm;
-  border: none;
-  border-radius: 10px;
-  background-color: #336699;
-  color: white;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
-}
-.sidebar-button:hover {
-  background-color: #4a78a2;
-  transform: scale(1.05);
-}
-.sidebar-button:active {
-  transform: scale(0.95);
-}
-/* Estilos para el popup de matriz */
-.matrix-popup {
-  position: absolute;
-  background: white;
-  border: 2px solid #ccc;
-  border-radius: 10px;
-  box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-.matrix-popup-header {
-  background: #336699;
-  color: white;
-  padding: 8px;
-  cursor: move;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.close-button {
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-}
-.matrix-popup-content {
-  padding: 10px;
-  flex-grow: 1;
-  overflow: auto;
-}
-.resizer {
-  width: 15px;
-  height: 15px;
-  background: #ccc;
-  cursor: nwse-resize;
-  align-self: flex-end;
-}
+  .popup-buttons {
+    display: flex;
+    justify-content: space-between;
+  }
 
-</style>
+  .popup-buttons button {
+    padding: 8px 15px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+  }
+
+  .cancel-button {
+    background: #4fb0d9;
+    color: white;
+  }
+
+  .cancel-button:hover {
+    background: #41658A;
+  }
+
+  .accept-button {
+    background: #F0B67F;
+    color: white;
+  }
+
+  .accept-button:hover {
+    background: #E26A2C;
+  }
+
+  .styled-input {
+    padding: 8px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .color-picker-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .color-picker {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    border: none;
+  }
+
+  .color-preview {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    border: 2px solid #000;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -60%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  .add-button:hover::after {
+    content: 'Agregar nodo';
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .delete-button:hover::after {
+    content: 'Eliminar nodo';
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .move-button:hover::after {
+    content: 'Mover nodo';
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .link-button:hover::after {
+    content: 'Enlazar nodos';
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .edit-button:hover::after {
+    content: 'Editar nodos';
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .clear-button:hover::after {
+    content: 'Limpiar canvas';
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .edges {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 1px solid rgb(246, 243, 243);
+    border-radius: 20px;
+    pointer-events: none;
+  }
+  .import-export-buttons {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .menu-button.import-button,
+  .menu-button.export-button {
+    width: 90px;          
+    height: 40px;      
+    background: #558ebc;  
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .menu-button.import-button:hover,
+  .menu-button.export-button:hover {
+    background: #4a78a2;
+    transform: scale(1.05);
+  }
+
+  .menu-button.import-button:active,
+  .menu-button.export-button:active {
+    transform: scale(0.95);
+  }
+
+  .edge-path {
+    pointer-events: stroke;
+    transition: stroke 0.3s, stroke-width 0.3s;
+  }
+  .edge-path:hover {
+    stroke-width: 3;
+    stroke: #ff0000;
+  }
+  /*sidebar*/
+  .sidebar {
+    width: 150px;
+    height: 60%;
+    background: #F0B67F;
+    margin: 20px;
+    margin-top: 70px;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  .sidebar-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 2cm);
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .sidebar-button {
+    width: 2cm;
+    height: 2cm;
+    border: none;
+    border-radius: 10px;
+    background-color: #336699;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+  }
+  .sidebar-button:hover {
+    background-color: #4a78a2;
+    transform: scale(1.05);
+  }
+  .sidebar-button:active {
+    transform: scale(0.95);
+  }
+  /* Estilos para el popup de matriz */
+  .matrix-popup {
+    position: absolute;
+    background: white;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .matrix-popup-header {
+    background: #336699;
+    color: white;
+    padding: 8px;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .close-button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .matrix-popup-content {
+    padding: 10px;
+    flex-grow: 1;
+    overflow: auto;
+  }
+  .resizer {
+    width: 15px;
+    height: 15px;
+    background: #ccc;
+    cursor: nwse-resize;
+    align-self: flex-end;
+  }
+
+  </style>
