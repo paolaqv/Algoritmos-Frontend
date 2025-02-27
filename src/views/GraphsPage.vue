@@ -109,9 +109,9 @@
       </button>
     </footer>
       <div class="import-export-buttons">
-      <button class="menu-button import-button" @click="importData">Importar</button>
-      <button class="menu-button export-button" @click="exportData">Exportar</button>
-    </div>
+        <button class="menu-button import-button" @click="importData">Importar</button>
+        <button class="menu-button export-button" @click="exportData">Exportar</button>
+      </div>
     <input type="file" ref="fileInput" @change="handleFileImport" accept=".json" style="display: none;" />
     <div v-if="showPopup" class="popup">
       <div class="popup-content">
@@ -520,12 +520,14 @@ handleNodeClick(node, index) {
       this.showPopup = false;
     },
     confirmNode() {
-      this.nodes.push({
+      const newNode = {
+        id: Date.now(), // O utiliza alguna otra estrategia para generar un id único
         x: this.tempNodePosition.x,
         y: this.tempNodePosition.y,
         name: this.nodeName,
         color: this.nodeColor
-      });
+      };
+      this.nodes.push(newNode);
       this.showPopup = false;
       this.nodeName = '';
       this.nodeColor = '#ff0000';
@@ -669,10 +671,23 @@ handleNodeClick(node, index) {
         try {
           const data = JSON.parse(e.target.result);
           if (data.nodes && data.edges) {
-            // Actualiza el grafo con los datos importados
             this.nodes = data.nodes;
-            this.edges = data.edges;
-            console.log("Grafo importado exitosamente");
+            // creacion de mapa para buscar nodos por su id
+            const nodeMap = {};
+            this.nodes.forEach(node => {
+              nodeMap[node.id] = node;
+            });
+            
+            // reasocia los nodos en cada arista y recalcula sus posiciones
+            this.edges = data.edges.map(edge => {
+              return {
+                ...edge,
+                node1: nodeMap[edge.node1.id],
+                node2: nodeMap[edge.node2.id],
+                calculated: this.calculateEdgePosition(nodeMap[edge.node1.id], nodeMap[edge.node2.id])
+              };
+            });
+          console.log("Grafo importado exitosamente");
           } else {
             console.error("El archivo JSON no tiene el formato correcto.");
           }
