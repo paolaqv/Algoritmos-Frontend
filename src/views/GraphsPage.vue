@@ -29,26 +29,25 @@
           </marker>
         </defs>
         <g v-for="(edge, index) in edges" :key="index">
-          @click="handleEdgeClick(edge, index, $event)"
-          <path
-            :d="generateEdgePath(edge)"
-            :stroke="edge.color"
-            fill="none"
-            stroke-width="2"
-            :marker-end="edge.direction === 'directed' ? 'url(#arrow)' : ''"
-            class="edge-path"
-            @click="handleEdgeClick(edge, index, $event)"
-          />
-          <text
-            :x="generateEdgeLabelPosition(edge).labelX"
-            :y="generateEdgeLabelPosition(edge).labelY"
-            fill="black"
-            font-size="12"
-            text-anchor="middle"
-          >
-            {{ edge.weight }}
-          </text>
-        </g>
+  <path
+    :d="generateEdgePath(edge)"
+    :stroke="edge.color"
+    fill="none"
+    stroke-width="2"
+    :marker-end="edge.direction === 'directed' ? 'url(#arrow)' : ''"
+    class="edge-path"
+    @click="handleEdgeClick(edge, index, $event)"
+  />
+  <text
+    :x="generateEdgeLabelPosition(edge).labelX"
+    :y="generateEdgeLabelPosition(edge).labelY"
+    fill="black"
+    font-size="12"
+    text-anchor="middle"
+  >
+    {{ edge.weight }}
+  </text>
+</g>
       </svg>
       <!-- Popup para matriz de adyacencia -->
       <div v-if="showMatrixPopup" class="matrix-popup" :style="matrixPopupStyle">
@@ -348,9 +347,12 @@ export default {
       document.removeEventListener('mousemove', this.onResizing);
       document.removeEventListener('mouseup', this.stopResizing);
     },
+
     handleEdgeClick(edge, index, event) {
     event.stopPropagation();
-    if (this.isEditing) {
+    if (this.isDeletingNode) {
+      this.deleteEdge(index);
+    } else if (this.isEditing) {
       this.editingTarget = edge;
       this.editingType = 'edge';
       this.editEdgeWeight = edge.weight;
@@ -360,6 +362,15 @@ export default {
       this.showEditEdgePopup = true;
     }
   },
+
+// Método para eliminar aristas
+deleteEdge(index) {
+    if (index !== null) {
+      this.edges.splice(index, 1);
+    }
+  },
+
+
     //calculo del radio para arista
     calculateEdgePosition(node1, node2) {
   const radius = 22.5;
