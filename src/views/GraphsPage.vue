@@ -2,8 +2,8 @@
   <div class="graphs-page">
     <aside class="sidebar">
       <div class="sidebar-buttons">
-        <button class="sidebar-button"  @click="openMatrixPopup">matriz adyacente </button>
-        <button class="sidebar-button">Botón 2</button>
+        <button class="sidebar-button" @click="openMatrixPopup">matriz adyacente </button>
+        <button class="sidebar-button" @click="runJohnson">jonhson</button>
         <button class="sidebar-button">Botón 3</button>
         <button class="sidebar-button">Botón 4</button>
       </div>
@@ -55,15 +55,38 @@
           <span>Matriz de Adyacencia</span>
           <button class="close-button" @click="closeMatrixPopup">X</button>
         </div>
-          <div class="matrix-popup-content">
-            <table border="1" cellspacing="0" cellpadding="5">
-              <tr v-for="(row, i) in adjacencyMatrix" :key="i">
-                <td v-for="(cell, j) in row" :key="j">{{ cell }}</td>
+        <div class="matrix-popup-content">
+          <table border="1" cellspacing="0" cellpadding="5">
+            <thead>
+              <tr>
+                <th></th> 
+                <th v-for="(node, index) in nodes" :key="index">
+                  {{ node.name }}
+                </th>
               </tr>
-            </table>
-          </div>
+            </thead>
+            <tbody>
+              <tr v-for="(row, i) in adjacencyMatrix" :key="i">
+                <th>{{ i + 1 }}</th> 
+                <td v-for="(cell, j) in row" :key="j">
+                  {{ cell }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div class="resizer" @mousedown="startResizing"></div>
       </div>
+      <!-- Popup para resultados de Johnson -->
+      <JohnsonPopup
+        v-if="showJohnsonPopup"
+        :nodes="nodes"
+        :results="johnsonResults"
+        :popupStyle="matrixPopupStyle"
+        @close="closeJohnsonPopup"
+        @start-drag="onPopupHeaderMouseDown"
+        @start-resize="startResizing"
+      />
     </main>
 
     <footer class="bottom-bar">
@@ -204,9 +227,22 @@
 <script>
 import HelpView from './HelpView.vue';
 import axios from 'axios';
+import Swal from 'sweetalert2';
+import JohnsonPopup from '../components/JohnsonPopup.vue';  // Ajusta la ruta segun tu estructura
+
+function cloneDeep(obj) {
+  if (obj === null || typeof obj !== 'object') return obj;
+  const result = Array.isArray(obj) ? [] : {};
+  Object.keys(obj).forEach(key => {
+    result[key] = cloneDeep(obj[key]);
+  });
+  return result;
+}
+
 
 export default {
   components: {
+    JohnsonPopup,
     HelpView,
   },
   
@@ -263,32 +299,109 @@ export default {
       resizeStartX: 0,
       resizeStartY: 0,
       //matriz recibida
-      adjacencyMatrix: []  
+      adjacencyMatrix: []  ,
+      // Propiedades para Johnson
+      showJohnsonPopup: false,
+      johnsonResults: {},
     };
   },
   methods: {
     toggleHelp() {
     this.isHelpActive = !this.isHelpActive; // Cambia el estado de isHelpActive
     },
-    // Métodos para la matriz de adyacencia
     openMatrixPopup() {
       this.showMatrixPopup = true;
     },
+    //Matriz-----------------------------------------------
     async openMatrixPopup() {
-  try {
-    const response = await axios.post('http://127.0.0.1:5000/graph/adjacency_matrix', {
-      nodes: this.nodes,
-      edges: this.edges
-    });
-    this.adjacencyMatrix = response.data.matrix;
-    this.showMatrixPopup = true;
-  } catch (error) {
-    console.error("Error al obtener la matriz de adyacencia:", error);
-  }
-},
+      if (!this.nodes || this.nodes.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'No hay un grafo para calcular su matriz adyancente',
+          text: 'Grafica uno primero 😊'
+        });
+        return;
+      }
+      try {
+        const response = await axios.post('http://127.0.0.1:5000/graph/adjacency_matrix', {
+          nodes: this.nodes,
+          edges: this.edges
+        });
+        this.adjacencyMatrix = response.data.matrix;
+        this.showMatrixPopup = true;
+      } catch (error) {
+        console.error("Error al obtener la matriz de adyacencia:", error);
+      }
+    },
     closeMatrixPopup() {
       this.showMatrixPopup = false;
     },
+    //Johnson-----------------------------------------------
+    async runJohnson() {
+      if (!this.nodes || this.nodes.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'No hay grafo',
+          text: 'Grafica uno primero 😊'
+        });
+        return;
+      }
+      // Verificar que el grafo sea dirigido
+      const undirectedEdge = this.edges.find(edge => edge.direction !== 'directed');
+      if (undirectedEdge) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Grafo no dirigido',
+          text: 'El algoritmo de Johnson solo funciona en grafos dirigidos.'
+        });
+        return;
+      }
+      // Verificar que todas las aristas tengan un peso numérico
+      const invalidWeightEdge = this.edges.find(edge => isNaN(Number(edge.weight)));
+      if (invalidWeightEdge) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Grafo no ponderado',
+          text: 'Todas las aristas deben tener un peso numérico asociado.'
+        });
+        return;
+      }
+      
+      try {
+  const response = await axios.post('http://127.0.0.1:5000/graph/johnson', {
+    nodes: this.nodes,
+    edges: this.edges
+  });
+  console.log("Respuesta Johnson:", response.data);
+  
+  if (typeof response.data === 'string') {
+  const parsedData = response.data.replace(/Infinity/g, '"∞"'); // O reemplazar con un número grande
+  this.johnsonResults = JSON.parse(parsedData);
+} else {
+  this.johnsonResults = response.data;
+}
+
+
+  console.log("Resultados Johnson asignados:", this.johnsonResults);
+
+  this.$nextTick(() => {
+    this.showJohnsonPopup = true;
+  });
+} catch (error) {
+  Swal.fire({
+    icon: 'error',
+    title: 'Error en Johnson',
+    text: error.response?.data?.error || 'Error al procesar el grafo con Johnson.'
+  });
+  console.error("Error en Johnson:", error);
+}
+
+    },
+    closeJohnsonPopup() {
+    console.log("Cerrando popup de Johnson desde el componente padre");
+    this.showJohnsonPopup = false;
+  },
+    //------------------------------------------------------
     onPopupHeaderMouseDown(event) {
       this.isDraggingPopup = true;
       const popupRect = event.currentTarget.parentElement.getBoundingClientRect();
@@ -520,22 +633,38 @@ handleNodeClick(node, index) {
       if (this.selectedNodes.length === 2) {
         const node1 = this.selectedNodes[0];
         const node2 = this.selectedNodes[1];
-
         if (!node1 || !node2) {
           console.error("Error: No se han seleccionado nodos válidos.");
           return;
         }
-
+        //existencia de la arista 
+        const edgeExists = this.edges.some(edge =>{
+          if(edge.direction === 'directed'){
+            return edge.node1.name === node1.name && edge.node2.name === node2.name;
+          }else{
+            //arista no dirigida
+            return(edge.node1.name === node1.name && edge.node2.name === node2.name) ||
+                  (edge.node1.name === node2.name && edge.node2.name === node1.name);
+          }
+        });
+        if(edgeExists){
+          Swal.fire({
+            icon: 'warning',
+            title: '¡Advertencia!',
+            text: `Los nodos ${node1.name} y ${node2.name} ya estan enlazados.` 
+          });
+          this.selectedNodes = [];
+          return;
+        }
         const calculatedPositions = this.calculateEdgePosition(node1, node2);
-
-    this.edges.push({
-      node1,          
-      node2,         
-      weight: this.edgeWeight,
-      direction: this.edgeDirection,
-      color: this.edgeColor,
-      calculated: calculatedPositions
-    });
+          this.edges.push({
+            node1,          
+            node2,         
+            weight: this.edgeWeight,
+            direction: this.edgeDirection,
+            color: this.edgeColor,
+            calculated: calculatedPositions
+          });
       }
       this.showEdgePopup = false;
       this.selectedNodes = [];
