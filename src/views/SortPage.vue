@@ -15,6 +15,7 @@
         <h2>Cargar Listas</h2>
         <button class="action-button" @click="openAddListModal">Agregar Lista</button>
         <button class="action-button" @click="openGenerateRandomModal">Generar Aleatoriamente</button>
+        <button class="action-button" @click="cleanList">Limpiar</button>
         <button class="action-button" @click="exportData">Exportar</button>
         <button class="action-button">
     <input type="file" accept=".json" @change="importData" style="display: none" id="importFile"/>
@@ -126,6 +127,12 @@ const gapValue = ref<number | null>(null);
 });
 
 
+  function cleanList() {
+    barValues.value = [];
+    currentIndex.value = null;
+    originalList.value = [];
+    sortedList.value = [];
+  }
   // Abrir el modal para agregar lista
   function openAddListModal() {
     showAddListModal.value = true;
