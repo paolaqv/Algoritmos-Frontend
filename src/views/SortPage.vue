@@ -20,6 +20,9 @@
     <input type="file" accept=".json" @change="importData" style="display: none" id="importFile"/>
     <label for="importFile" class="action-button">Importar</label>
   </button>
+  <button class="action-button" >Limpiar</button>
+
+
       </div>
       
       <div class="button-group">
