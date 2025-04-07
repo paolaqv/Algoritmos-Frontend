@@ -109,6 +109,7 @@
                 <th v-for="(node, index) in nodes" :key="index">
                   {{ node.name }}
                 </th>
+                <th>RowSum</th>
               </tr>
             </thead>
             <tbody>
@@ -117,6 +118,14 @@
                 <td v-for="(cell, j) in row" :key="j">
                   {{ cell }}
                 </td>
+                <td>{{ rowSums[i] }}</td>
+              </tr>
+              <tr>
+                <th>ColSum</th>
+                <td v-for="(sum, j) in colSums" :key="j">
+                  {{ sum }}
+                </td>
+                <td>{{ totalSum }}</td>
               </tr>
             </tbody>
           </table>
@@ -125,13 +134,14 @@
       </div>
       <!-- Popup para resultados de Johnson -->
       <JohnsonPopup
-        v-if="showJohnsonPopup"
-        :nodes="nodes"
-        :results="johnsonResults"
-        :popupStyle="matrixPopupStyle"
-        @close="closeJohnsonPopup"
-        @start-drag="onPopupHeaderMouseDown"
-        @start-resize="startResizing"
+          v-if="showJohnsonPopup"
+          :nodes="nodes"
+          :edges="edges"
+          :results="johnsonResults"
+          :popupStyle="matrixPopupStyle"
+          @close="closeJohnsonPopup"
+          @start-drag="onPopupHeaderMouseDown"
+          @start-resize="startResizing"
       />
     </main>
 
@@ -284,16 +294,7 @@
 import HelpView from './HelpView.vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
-import JohnsonPopup from '../components/JohnsonPopup.vue' // Ajusta la ruta segun tu estructura
-
-function cloneDeep(obj) {
-  if (obj === null || typeof obj !== 'object') return obj
-  const result = Array.isArray(obj) ? [] : {}
-  Object.keys(obj).forEach((key) => {
-    result[key] = cloneDeep(obj[key])
-  })
-  return result
-}
+import JohnsonPopup from '../components/JohnsonPopup.vue' 
 
 export default {
   components: {
@@ -369,6 +370,28 @@ export default {
       groupB: [],
     }
   },
+
+  computed: {
+  rowSums() {
+    return this.adjacencyMatrix.map(row =>
+      row.reduce((acc, cell) => acc + Number(cell), 0)
+    );
+  },
+  colSums() {
+    if (!this.adjacencyMatrix.length) return [];
+    const cols = this.adjacencyMatrix[0].length;
+    let sums = Array(cols).fill(0);
+    this.adjacencyMatrix.forEach(row => {
+      row.forEach((cell, j) => {
+        sums[j] += Number(cell);
+      });
+    });
+    return sums;
+  },
+  totalSum() {
+    return this.rowSums.reduce((a, b) => a + b, 0);
+  }
+},
   methods: {
     toggleHelp() {
       this.isHelpActive = !this.isHelpActive // Cambia el estado de isHelpActive
@@ -400,65 +423,162 @@ export default {
     closeMatrixPopup() {
       this.showMatrixPopup = false
     },
+    checkGraphValidity() {
+    let errors = [];
+    // Construir mapas de entradas y salidas
+    const incoming = new Map();
+    const outgoing = new Map();
+    this.nodes.forEach(n => {
+      incoming.set(n.name, 0);
+      outgoing.set(n.name, 0);
+    });
+    this.edges.forEach(e => {
+      // Se asume que cada arista tiene propiedad weight y nodos identificados por name
+      outgoing.set(e.node1.name, outgoing.get(e.node1.name) + 1);
+      incoming.set(e.node2.name, incoming.get(e.node2.name) + 1);
+    });
+    // Nodo de inicio: sin entradas
+    const startNodes = this.nodes.filter(n => incoming.get(n.name) === 0);
+    if (startNodes.length === 0) {
+      errors.push("No se encontró un nodo de inicio (sin entradas).");
+    }
+    // Nodo final: sin salidas
+    const endNodes = this.nodes.filter(n => outgoing.get(n.name) === 0);
+    if (endNodes.length === 0) {
+      errors.push("No se encontró un nodo final (sin salidas).");
+    }
+    // Verifica que no haya ciclos (utilizando DFS)
+    if (this.hasCycle()) {
+      errors.push("El grafo tiene ciclos.");
+    }
+    // Verifica que no existan pesos negativos
+    const negativeEdge = this.edges.find(e => Number(e.weight) < 0);
+    if (negativeEdge) {
+      errors.push("El grafo tiene pesos negativos.");
+    }
+    return errors;
+  },
+
+  // Algoritmo DFS para detectar ciclos
+  hasCycle() {
+    const visited = new Set();
+    const recStack = new Set();
+    const adjList = new Map();
+    // Construir lista de adyacencia
+    this.nodes.forEach(n => {
+      adjList.set(n.name, []);
+    });
+    this.edges.forEach(e => {
+      adjList.get(e.node1.name).push(e.node2.name);
+    });
+    // Función auxiliar DFS
+    const dfs = (node) => {
+      if (recStack.has(node)) return true;
+      if (visited.has(node)) return false;
+      visited.add(node);
+      recStack.add(node);
+      const neighbors = adjList.get(node);
+      for (const nbr of neighbors) {
+        if (dfs(nbr)) return true;
+      }
+      recStack.delete(node);
+      return false;
+    };
+    // Recorre cada nodo
+    for (const node of this.nodes.map(n => n.name)) {
+      if (dfs(node)) return true;
+    }
+    return false;
+  },
     //Johnson-----------------------------------------------
     async runJohnson() {
-      if (!this.nodes || this.nodes.length === 0) {
-        Swal.fire({
-          icon: 'info',
-          title: 'No hay grafo',
-          text: 'Grafica uno primero 😊',
-        })
-        return
-      }
-      // Verificar que el grafo sea dirigido
-      const undirectedEdge = this.edges.find((edge) => edge.direction !== 'directed')
-      if (undirectedEdge) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Grafo no dirigido',
-          text: 'El algoritmo de Johnson solo funciona en grafos dirigidos.',
-        })
-        return
-      }
-      // Verificar que todas las aristas tengan un peso numérico
-      const invalidWeightEdge = this.edges.find((edge) => isNaN(Number(edge.weight)))
-      if (invalidWeightEdge) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Grafo no ponderado',
-          text: 'Todas las aristas deben tener un peso numérico asociado.',
-        })
-        return
-      }
+      const errors = this.checkGraphValidity();
+      if (errors.length > 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Grafo inválido",
+        html: errors.join("<br>")
+      });
+      return;
+    }
+    try {
+        console.log("Iniciando el proceso de ejecución de Johnson...");
 
-      try {
-        const response = await axios.post('http://127.0.0.1:5000/graph/johnson', {
-          nodes: this.nodes,
-          edges: this.edges,
-        })
-        console.log('Respuesta Johnson:', response.data)
+        const edgesFormatted = this.edges.map(edge => {
+            const sourceNode = this.nodes.find(n => n.id === edge.node1.id);
+            const targetNode = this.nodes.find(n => n.id === edge.node2.id);
 
-        if (typeof response.data === 'string') {
-          const parsedData = response.data.replace(/Infinity/g, '"∞"') // O reemplazar con un número grande
-          this.johnsonResults = JSON.parse(parsedData)
-        } else {
-          this.johnsonResults = response.data
+            if (!sourceNode || !targetNode) {
+                console.error(`❌ Nodo no encontrado: ${!sourceNode ? edge.node1.id : edge.node2.id}`);
+                return null;
+            }
+
+            console.log(`✅ Nodo encontrado: ${sourceNode.name} -> ${targetNode.name}, Peso: ${edge.weight}`);
+
+            return {
+                node1: { name: sourceNode.name },
+                node2: { name: targetNode.name },
+                weight: Number(edge.weight)
+            };
+        }).filter(edge => edge !== null);
+
+        if (edgesFormatted.length === 0) {
+            console.error("❌ No se encontraron aristas válidas después del formateo.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Error en Johnson',
+                text: 'No se encontraron aristas válidas para procesar.'
+            });
+            return;
         }
 
-        console.log('Resultados Johnson asignados:', this.johnsonResults)
+        console.log("Aristas formateadas para enviar al backend:", JSON.stringify(edgesFormatted, null, 2));
 
-        this.$nextTick(() => {
-          this.showJohnsonPopup = true
-        })
-      } catch (error) {
+        const nodesFormatted = this.nodes.map(node => ({
+            id: node.id,
+            x: node.x,
+            y: node.y,
+            name: node.name,
+            color: node.color
+        }));
+
+        console.log("Nodos formateados para enviar al backend:", JSON.stringify(nodesFormatted, null, 2));
+
+        const response = await axios.post('http://127.0.0.1:5000/graph/johnson', {
+            nodes: nodesFormatted,
+            edges: edgesFormatted
+        });
+
+        console.log("📥 Respuesta recibida del backend:", response.data);
+
+        const { distances, h_values, critical_path, early_times, late_times, edges } = response.data;
+
+        if (!distances || !h_values || !critical_path || !early_times || !late_times || !edges) {
+            console.error("❌ Error: El formato de la respuesta del backend es incorrecto o faltan datos.");
+            throw new Error("El formato de la respuesta es incorrecto o faltan datos.");
+        }
+
+        this.johnsonResults = { 
+            distances, 
+            h_values, 
+            critical_path, 
+            early_times, 
+            late_times,
+            edges
+        };
+
+        console.log("✅ Johnson ejecutado correctamente. Resultados:", this.johnsonResults);
+        this.showJohnsonPopup = true;
+
+    } catch (error) {
+        console.error("❌ Error en Johnson:", error);
         Swal.fire({
-          icon: 'error',
-          title: 'Error en Johnson',
-          text: error.response?.data?.error || 'Error al procesar el grafo con Johnson.',
-        })
-        console.error('Error en Johnson:', error)
-      }
-    },
+            icon: 'error',
+            title: 'Error en Johnson',
+            text: error.message || 'Error al procesar el grafo con Johnson.'
+        });
+    }
+},
     closeJohnsonPopup() {
       console.log('Cerrando popup de Johnson desde el componente padre')
       this.showJohnsonPopup = false
@@ -886,46 +1006,106 @@ export default {
         return { labelX, labelY }
       }
     },
-    handleFileImport(event) {
-      const file = event.target.files[0]
-      if (!file) return
+    // handleFileImport(event) {
 
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result)
-          if (data.nodes && data.edges) {
-            this.nodes = data.nodes
-            // creacion de mapa para buscar nodos por su id
-            const nodeMap = {}
-            this.nodes.forEach((node) => {
-              nodeMap[node.id] = node
-            })
 
-            // reasocia los nodos en cada arista y recalcula sus posiciones
-            this.edges = data.edges.map((edge) => {
-              return {
-                ...edge,
-                node1: nodeMap[edge.node1.id],
-                node2: nodeMap[edge.node2.id],
-                calculated: this.calculateEdgePosition(
-                  nodeMap[edge.node1.id],
-                  nodeMap[edge.node2.id],
-                ),
-              }
-            })
-            console.log('Grafo importado exitosamente')
-          } else {
-            console.error('El archivo JSON no tiene el formato correcto.')
-          }
-        } catch (error) {
-          console.error('Error al importar el archivo JSON:', error)
-        }
-      }
-      reader.readAsText(file)
-    },
+    //   const file = event.target.files[0]
+    //   if (!file) return
+
+    //   const reader = new FileReader()
+    //   reader.onload = (e) => {
+    //     try {
+    //       const data = JSON.parse(e.target.result)
+    //       if (data.nodes && data.edges) {
+    //         this.nodes = data.nodes
+    //         // creacion de mapa para buscar nodos por su id
+    //         const nodeMap = {}
+    //         this.nodes.forEach((node) => {
+    //           nodeMap[node.id] = node
+    //         })
+
+    //         // reasocia los nodos en cada arista y recalcula sus posiciones
+    //         this.edges = data.edges.map((edge) => {
+    //           return {
+    //             ...edge,
+    //             node1: nodeMap[edge.node1.id],
+    //             node2: nodeMap[edge.node2.id],
+    //             calculated: this.calculateEdgePosition(
+    //               nodeMap[edge.node1.id],
+    //               nodeMap[edge.node2.id],
+    //             ),
+    //           }
+    //         })
+    //         console.log('Grafo importado exitosamente')
+    //       } else {
+    //         console.error('El archivo JSON no tiene el formato correcto.')
+    //       }
+    //     } catch (error) {
+    //       console.error('Error al importar el archivo JSON:', error)
+    //     }
+    //   }
+    //   reader.readAsText(file)
+    // },
 
     // Botón para resolver la asignación; mode = 'min' o 'max'
+    handleFileImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+
+            if (data.nodes && data.edges) {
+                // Cargar nodos
+                this.nodes = data.nodes.map(node => ({
+                    id: node.id,
+                    x: node.x,
+                    y: node.y,
+                    name: node.name,
+                    color: node.color
+                }));
+
+                // Crear un mapa para acceder a los nodos por su nombre
+                const nodeMap = {};
+                this.nodes.forEach(node => {
+                    nodeMap[node.name] = node;  // Mapear usando 'name' en lugar de 'id'
+                });
+
+                // Cargar aristas y calcular sus posiciones
+                this.edges = data.edges.map(edge => {
+                    const sourceNode = nodeMap[edge.node1.name];  // Buscar por 'name'
+                    const targetNode = nodeMap[edge.node2.name];  // Buscar por 'name'
+                    
+                    if (!sourceNode || !targetNode) {
+                        console.error("Error al encontrar nodos para arista: ", edge);
+                        return null;
+                    }
+
+                    // Generar la propiedad 'calculated' usando tu método existente
+                    const calculatedPositions = this.calculateEdgePosition(sourceNode, targetNode);
+
+                    return {
+                        node1: sourceNode,
+                        node2: targetNode,
+                        weight: edge.weight,
+                        direction: edge.direction || 'directed',
+                        color: edge.color || '#000000',
+                        calculated: calculatedPositions  // Generar las posiciones calculadas
+                    };
+                }).filter(edge => edge !== null); // Filtrar aristas inválidas
+
+                console.log("✅ Grafo importado exitosamente");
+            } else {
+                console.error("❌ El archivo JSON no tiene el formato correcto.");
+            }
+        } catch (error) {
+            console.error("❌ Error al importar el archivo JSON:", error);
+        }
+    };
+    reader.readAsText(file);
+},    
     solveAssignment(mode) {
       this.assignmentMode = mode
       // Paso 1: Detectar grupos automáticamente

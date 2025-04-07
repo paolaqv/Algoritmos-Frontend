@@ -48,3 +48,7 @@ npm install @fortawesome/fontawesome-free```
 ```sh
 npm install sweetalert2
 ```
+### GSAP
+```sh
+npm install gsap
+```
