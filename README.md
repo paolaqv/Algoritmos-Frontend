@@ -42,3 +42,9 @@ npm run lint
 
 ```sh
 npm install @fortawesome/fontawesome-free```
+```
+### SweetAlert
+
+```sh
+npm install sweetalert2
+```
