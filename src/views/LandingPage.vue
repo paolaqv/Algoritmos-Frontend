@@ -4,6 +4,7 @@
     <ul class="nav-links">
       <li><router-link to="/">Inicio</router-link></li>
       <li><router-link to="/graphs">Grafos</router-link></li>
+      <li><router-link to="/sort">Sorting</router-link></li>
       <li><router-link to="#">Contacto</router-link></li>
     </ul>
   </nav>
