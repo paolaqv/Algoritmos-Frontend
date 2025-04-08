@@ -39,11 +39,11 @@
 
 <style>
 :root {
-  --primary-color: #41658A;
-  --secondary-color: #F0B67F;
-  --background-color: #EEF5DB;
-  --accent-color: #C7EFCF;
-  --text-color: #D6D1B1;
+  --primary-color: #1D3557;
+  --secondary-color: #457B9D;
+  --background-color: #A8DADC;
+  --accent-color: #F1FAEE;
+  --text-color: #E63946;
 }
 
 body {

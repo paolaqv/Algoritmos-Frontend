@@ -1308,7 +1308,7 @@ export default {
   display: flex;
   width: 95vw;
   height: 95vh;
-  background: #41658a;
+  background: #555B6E;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1318,7 +1318,7 @@ export default {
 
 .content {
   flex-grow: 1;
-  background: #e0f5e4;
+  background: #FAF9F9;
   margin: 20px;
   padding: 20px;
   margin-bottom: 100px;
@@ -1345,7 +1345,7 @@ export default {
 
 .bottom-bar {
   height: 50px;
-  background: #f0b67f;
+  background: #89B0AE;
   position: absolute;
   bottom: 20px;
   left: 57%;
@@ -1361,7 +1361,7 @@ export default {
 .menu-button {
   width: 40px;
   height: 40px;
-  background: #336699;
+  background: #BEE3DB;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -1576,7 +1576,7 @@ export default {
 .menu-button.export-button {
   width: 90px;
   height: 40px;
-  background: #558ebc;
+  background: #FFD6BA;
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -1590,7 +1590,7 @@ export default {
 
 .menu-button.import-button:hover,
 .menu-button.export-button:hover {
-  background: #4a78a2;
+  background: #dc9a6e;
   transform: scale(1.05);
 }
 
@@ -1613,7 +1613,7 @@ export default {
 .sidebar {
   width: 150px;
   height: 60%;
-  background: #f0b67f;
+  background: #89B0AE;
   margin: 20px;
   margin-top: 70px;
   border-radius: 10px;
@@ -1631,7 +1631,7 @@ export default {
   height: 2cm;
   border: none;
   border-radius: 10px;
-  background-color: #336699;
+  background-color: #BEE3DB;
   color: white;
   font-size: 12px;
   cursor: pointer;
@@ -1640,7 +1640,7 @@ export default {
     transform 0.2s;
 }
 .sidebar-button:hover {
-  background-color: #4a78a2;
+  background-color: #92cdc0;
   transform: scale(1.05);
 }
 .sidebar-button:active {
