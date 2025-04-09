@@ -4,6 +4,7 @@
       <div class="sidebar-buttons">
         <button class="sidebar-button" @click="openMatrixPopup">matriz adyacente</button>
         <button class="sidebar-button" @click="runJohnson">jonhson</button>
+        <button class="sidebar-button" @click="showNorthWestHelp = true">NorthWest</button>
         <button class="sidebar-button" @click="solveAssignment('min')">Minimizar</button>
         <button class="sidebar-button" @click="solveAssignment('max')">Maximizar</button>
       </div>
@@ -143,6 +144,17 @@
           @start-drag="onPopupHeaderMouseDown"
           @start-resize="startResizing"
       />
+      <NorthWestPopup
+        v-if="showNorthWestPopup"
+        :nodes="nodes"
+        :edges="edges"
+        @close="showNorthWestPopup = false"
+      />
+      <HelpNorthWest
+        v-if="showNorthWestHelp"
+        @skip="() => { showNorthWestHelp = false; showNorthWestPopup = true }"
+      />
+
     </main>
 
     <footer class="bottom-bar">
@@ -295,11 +307,17 @@ import HelpView from './HelpView.vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import JohnsonPopup from '../components/JohnsonPopup.vue' 
+import NorthWestPopup from '../components/NorthWestPopup.vue'
+import HelpNorthWest from '../components/HelpNorthWest.vue'
+
 
 export default {
   components: {
     JohnsonPopup,
     HelpView,
+    NorthWestPopup,
+    HelpNorthWest
+
   },
 
   name: 'GraphsPage',
@@ -368,6 +386,11 @@ export default {
       //Grupos de nodos para asignación (se detectan automaticamente)
       groupA: [],
       groupB: [],
+      //NorthWest
+      showNorthWestPopup: false,
+      showNorthWestHelp: false,
+
+
     }
   },
 
@@ -490,6 +513,12 @@ export default {
     }
     return false;
   },
+  //NorthWest help---------------------------------------------------
+  runNorthWest() {
+    this.showNorthWestHelp = false
+    this.showNorthWestPopup = true
+  },
+
     //Johnson-----------------------------------------------
     async runJohnson() {
       const errors = this.checkGraphValidity();
