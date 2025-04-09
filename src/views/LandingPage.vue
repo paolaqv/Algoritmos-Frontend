@@ -1,19 +1,24 @@
 <template>
-  <nav class="navbar">
-    <img src="@/assets/logo.svg" alt="Logo" class="logo">
-    <ul class="nav-links">
-      <li><router-link to="/">Inicio</router-link></li>
-      <li><router-link to="/graphs">Grafos</router-link></li>
-      <li><router-link to="/sort">Sorting</router-link></li>
-      <li><router-link to="#">Contacto</router-link></li>
-    </ul>
-  </nav>
   <section class="landing">
+    <!-- NAVBAR -->
+    <nav class="navbar">
+      <img src="@/assets/logo.svg" alt="Logo" class="logo" />
+      <ul class="nav-links">
+        <li><router-link to="/">Inicio</router-link></li>
+        <li><router-link to="/graphs">Grafos</router-link></li>
+        <li><router-link to="/sort">Sorting</router-link></li>
+        <li><router-link to="#">Contacto</router-link></li>
+      </ul>
+    </nav>
+
+    <!-- HERO -->
     <div class="hero">
       <h1 class="fade-in">Grafo Interactivo</h1>
       <p class="slide-up">Crea y personaliza grafos de forma intuitiva e interactiva.</p>
       <router-link to="/graphs" class="cta-button scale-up">Empezar</router-link>
     </div>
+
+    <!-- FEATURES -->
     <div class="features">
       <div class="feature zoom-in">
         <h2>Interactividad</h2>
@@ -28,8 +33,44 @@
         <p>Exporta tus grafos en formato CSV fácilmente.</p>
       </div>
     </div>
+
+    <!-- NUEVA SECCIÓN -->
+    <div class="algorithms-section">
+      <h2>Explora los Algoritmos</h2>
+      <div class="algorithm-cards">
+        <div class="algorithm-card">
+          <h3>Matriz de Adyacencia</h3>
+          <p>Representación compacta de grafos mediante matrices.</p>
+        </div>
+        <div class="algorithm-card">
+          <h3>North West</h3>
+          <p>Método inicial para problemas de transporte.</p>
+        </div>
+        <div class="algorithm-card">
+          <h3>Johnson</h3>
+          <p>Encuentra caminos más cortos entre todos los pares de nodos.</p>
+        </div>
+        <div class="algorithm-card">
+          <h3>Asignación</h3>
+          <p>Algoritmo para asignar tareas u optimizar recursos.</p>
+        </div>
+        <div class="algorithm-card">
+          <h3>Selection Sort</h3>
+          <p>Ordenamiento simple basado en selecciones sucesivas.</p>
+        </div>
+        <div class="algorithm-card">
+          <h3>Insertion Sort</h3>
+          <p>Construye la lista ordenada uno por uno.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
     <footer class="footer">
-      <p>Proyecto Open Source en <b><a href="https://github.com/paolaqv/Algoritmos-Frontend" target="_blank">GitHub</a></b></p>
+      <p>
+        Proyecto Open Source en
+        <b><a href="https://github.com/paolaqv/Algoritmos-Frontend" target="_blank">GitHub</a></b>
+      </p>
     </footer>
   </section>
 </template>
@@ -38,6 +79,7 @@
 </script>
 
 <style>
+/* COLORES */
 :root {
   --primary-color: #1D3557;
   --secondary-color: #457B9D;
@@ -53,6 +95,7 @@ body {
   color: var(--primary-color);
 }
 
+/* NAVBAR */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -69,6 +112,8 @@ body {
   list-style: none;
   display: flex;
   gap: 1rem;
+  margin: 0;
+  padding: 0;
 }
 
 .nav-links a {
@@ -77,6 +122,7 @@ body {
   font-weight: bold;
 }
 
+/* HERO */
 .hero {
   text-align: center;
   padding: 2rem;
@@ -105,10 +151,12 @@ body {
   margin-top: 1rem;
 }
 
+/* FEATURES */
 .features {
   display: flex;
   justify-content: space-around;
   padding: 2rem;
+  flex-wrap: wrap;
 }
 
 .feature {
@@ -117,16 +165,54 @@ body {
   padding: 1rem;
   border-radius: 10px;
   width: 30%;
+  margin-bottom: 1rem;
 }
 
 .feature h2 {
   color: var(--primary-color);
 }
 
-.feature p {
-  color: var(--primary-color);
+/* NUEVA SECCIÓN */
+.algorithms-section {
+  padding: 2rem;
+  background-color: var(--accent-color);
+  text-align: center;
 }
 
+.algorithms-section h2 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+}
+
+.algorithm-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.algorithm-card {
+  background-color: var(--background-color);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.algorithm-card:hover {
+  transform: translateY(-5px);
+}
+
+.algorithm-card h3 {
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.algorithm-card p {
+  color: var(--primary-color);
+  font-size: 0.95rem;
+}
+
+/* FOOTER */
 .footer {
   text-align: center;
   padding: 1rem;
@@ -140,6 +226,7 @@ body {
   text-decoration: none;
 }
 
+/* ANIMACIONES */
 .fade-in {
   animation: fadeIn 2s;
 }
