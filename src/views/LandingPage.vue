@@ -6,7 +6,7 @@
       <ul class="nav-links">
         <li><router-link to="/">Inicio</router-link></li>
         <li><router-link to="/graphs">Grafos</router-link></li>
-        <li><router-link to="/sort">Sorting</router-link></li>
+        <li><router-link to="/sort">Ordenamiento</router-link></li>
         <li><router-link to="#">Contacto</router-link></li>
       </ul>
     </nav>
@@ -23,12 +23,11 @@
   <div class="hero-half">
     <h1 class="fade-in">Algoritmos de Ordenamiento</h1>
     <p class="slide-up">Visualiza paso a paso algoritmos como Selection Sort e Insertion Sort.</p>
-    <router-link to="/sort" class="cta-button scale-up">Ver Sorting</router-link>
+    <router-link to="/sort" class="cta-button scale-up">Ver Ordenamiento</router-link>
   </div>
 </div>
 
-
-    <!-- FEATURES -->
+    <!-- CARACTERÍSTICAS -->
     <div class="features">
       <div class="feature zoom-in">
         <h2>Interactividad</h2>
@@ -52,7 +51,7 @@
       <h3>Matriz de Adyacencia</h3>
       <p>Representación compacta de grafos mediante matrices.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer mas</router-link>
+        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
         <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
@@ -60,7 +59,7 @@
       <h3>North West</h3>
       <p>Método inicial para problemas de transporte.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer mas</router-link>
+        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
         <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
@@ -68,7 +67,7 @@
       <h3>Johnson</h3>
       <p>Encuentra caminos más cortos entre todos los pares de nodos.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer mas</router-link>
+        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
         <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
@@ -76,7 +75,7 @@
       <h3>Asignación</h3>
       <p>Algoritmo para asignar tareas u optimizar recursos.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer mas</router-link>
+        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
         <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
@@ -91,7 +90,7 @@
       <h3>Selection Sort</h3>
       <p>Ordenamiento simple basado en selecciones sucesivas.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer mas</router-link>
+        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
         <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
@@ -99,7 +98,7 @@
       <h3>Insertion Sort</h3>
       <p>Construye la lista ordenada uno por uno.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer mas</router-link>
+        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
         <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
@@ -107,7 +106,7 @@
       <h3>Merge Sort</h3>
       <p>Divide y conquista para ordenar eficientemente.</p>
       <div class="card-buttons">
-      <router-link to="/graphs" class="cta-button scale-up">Conocer mas</router-link>
+        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
         <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
@@ -115,13 +114,12 @@
       <h3>Shell Sort</h3>
       <p>Versión mejorada del insertion sort con saltos.</p>
       <div class="card-buttons">
-      <router-link to="/graphs" class="cta-button scale-up">Conocer mas</router-link>
+        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
         <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
   </div>
 </div>
-
 
     <!-- FOOTER -->
     <footer class="footer">
@@ -212,7 +210,7 @@ body {
   font-weight: bold;
 }
 
-/* FEATURES */
+/* CARACTERÍSTICAS */
 .features {
   display: flex;
   justify-content: space-around;
@@ -255,14 +253,25 @@ body {
 .algorithm-card {
   background-color: var(--background-color);
   border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 1rem;
-  box-shadow: 0 4px 6px rgba(85, 91, 110, 0.1); /* primary-color con opacidad */
-  transition: transform 0.3s ease;
+}
+
+.algorithm-card h3 {
   color: var(--primary-color);
 }
 
-.algorithm-card:hover {
-  transform: translateY(-5px);
+.card-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.card-buttons .cta-button {
+  background-color: var(--secondary-color);
+  text-decoration: none;
+  padding: 0.5rem;
+  border-radius: 5px;
 }
 
 /* FOOTER */
@@ -270,88 +279,6 @@ body {
   text-align: center;
   padding: 1rem;
   background-color: var(--primary-color);
-  color: var(--text-color);
-  margin-top: 2rem;
+  color: var(--background-color);
 }
-
-.footer a {
-  color: var(--text-color);
-  text-decoration: none;
-}
-
-/* ANIMACIONES */
-.fade-in {
-  animation: fadeIn 2s;
-}
-
-.slide-up {
-  animation: slideUp 1.5s;
-}
-
-.scale-up {
-  animation: scaleUp 1s;
-}
-
-.zoom-in {
-  animation: zoomIn 1s;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes scaleUp {
-  from { transform: scale(0.9); }
-  to { transform: scale(1); }
-}
-
-@keyframes zoomIn {
-  from { transform: scale(0.9); }
-  to { transform: scale(1); }
-}
-
-.split-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: stretch;
-  gap: 2rem;
-  margin: 2rem;
-  flex-wrap: nowrap;
-}
-
-.hero-half {
-  background-color: var(--accent-color);
-  border-radius: 10px;
-  padding: 2rem;
-  flex: 1;
-  text-align: center;
-  min-width: 0;
-  box-shadow: 0 4px 10px rgba(85, 91, 110, 0.15); /* primary-color */
-  transition: transform 0.3s ease;
-  color: var(--primary-color);
-}
-
-.hero-half:hover {
-  transform: scale(1.02);
-}
-
-@media (max-width: 768px) {
-  .split-hero {
-    flex-direction: column;
-  }
-}
-.card-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-  flex-wrap: wrap;
-}
-
 </style>
