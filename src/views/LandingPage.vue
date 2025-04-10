@@ -187,7 +187,11 @@ body {
   margin: 0;
   padding: 0;
 }
-
+.nav-links a {
+   color: var(--text-color);
+   text-decoration: none;
+   font-weight: bold;
+}
 /* Caja de la imagen */
 .image-container {
   text-align: center;
