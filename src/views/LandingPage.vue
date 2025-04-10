@@ -11,21 +11,29 @@
       </ul>
     </nav>
 
-  <div class="hero split-hero">
-  <!-- Caja de Grafos -->
-  <div class="hero-half">
-    <h1 class="fade-in">Grafo Interactivo</h1>
-    <p class="slide-up">Crea y personaliza grafos de forma intuitiva e interactiva.</p>
-    <router-link to="/graphs" class="cta-button scale-up">Empezar</router-link>
-  </div>
+    <div class="hero">
+      <!-- Caja de contenido con Grafo Interactivo y Ordenamiento -->
+      <div class="hero-content">
+        <!-- Grafo Interactivo -->
+        <div class="hero-half">
+          <!-- Imagen pequeña centrada encima del Grafo Interactivo -->
+          <div class="image-container">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyeqmUU6i2pH8mpCl5q_FhzMqsGXtEfBzMGA&s" alt="Imagen de grafo interactivo" class="hero-image">
+          </div>
+          <h1 class="fade-in">Grafo Interactivo</h1>
+          <p class="slide-up">Crea y personaliza grafos de forma intuitiva e interactiva.</p>
+          <router-link to="/graphs" class="cta-button scale-up">Empezar</router-link>
+        </div>
 
-  <!-- Caja de Sorting -->
-  <div class="hero-half">
-    <h1 class="fade-in">Algoritmos de Ordenamiento</h1>
-    <p class="slide-up">Visualiza paso a paso algoritmos como Selection Sort e Insertion Sort.</p>
-    <router-link to="/sort" class="cta-button scale-up">Ver Ordenamiento</router-link>
-  </div>
-</div>
+        <!-- Algoritmos de Ordenamiento -->
+        <div class="hero-half">
+          <img src="https://miro.medium.com/v2/resize:fit:1029/1*_qUuB7vQ716KuLp6bx3-oQ.png" alt="Algoritmos de Ordenamiento" class="hero-image">
+          <h1 class="fade-in">Algoritmos de Ordenamiento</h1>
+          <p class="slide-up">Visualiza paso a paso algoritmos como Selection Sort e Insertion Sort.</p>
+          <router-link to="/sort" class="cta-button scale-up">Ver Ordenamiento</router-link>
+        </div>
+      </div>
+    </div>
 
     <!-- CARACTERÍSTICAS -->
     <div class="features">
@@ -43,83 +51,48 @@
       </div>
     </div>
 
-   <!-- SECCIÓN ALGORITMOS GENERALES -->
-<div class="algorithms-section">
-  <h2>Explora los Algoritmos</h2>
-  <div class="algorithm-cards">
-    <div class="algorithm-card">
-      <h3>Matriz de Adyacencia</h3>
-      <p>Representación compacta de grafos mediante matrices.</p>
-      <div class="card-buttons">
-        <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
-      </div>
-    </div>
-    <div class="algorithm-card">
-      <h3>North West</h3>
-      <p>Método inicial para problemas de transporte.</p>
-      <div class="card-buttons">
+    <!-- SECCIÓN ALGORITMOS DE ORDENAMIENTO -->
+    <div class="algorithms-section">
+      <h2 class="centered">Algoritmos de Ordenamiento</h2>
+      <div class="algorithm-cards">
+        <div class="algorithm-card">
+          <h3>Selection Sort</h3>
+          <img src="https://www.programiz.com/sites/tutorial2program/files/Selection-sort-0.png" alt="Selection Sort" class="hero-image">
+          <p>Ordenamiento simple basado en selecciones sucesivas.</p>
+          <div class="card-buttons">
             <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
-      </div>
-    </div>
-    <div class="algorithm-card">
-      <h3>Johnson</h3>
-      <p>Encuentra caminos más cortos entre todos los pares de nodos.</p>
-      <div class="card-buttons">
+            <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
+          </div>
+        </div>
+        <div class="algorithm-card">
+          <h3>Insertion Sort</h3>
+          <img src="https://i0.wp.com/bteccomputing.co.uk/wp-content/uploads/2020/03/insertionPic.png?w=640" alt="Insertion Sort" class="hero-image">
+          <p>Construye la lista ordenada uno por uno.</p>
+          <div class="card-buttons">
             <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
-      </div>
-    </div>
-    <div class="algorithm-card">
-      <h3>Asignación</h3>
-      <p>Algoritmo para asignar tareas u optimizar recursos.</p>
-      <div class="card-buttons">
-           <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SECCIÓN ALGORITMOS DE ORDENAMIENTO -->
-<div class="algorithms-section">
-  <h2>Algoritmos de Ordenamiento</h2>
-  <div class="algorithm-cards">
-    <div class="algorithm-card">
-      <h3>Selection Sort</h3>
-      <p>Ordenamiento simple basado en selecciones sucesivas.</p>
-      <div class="card-buttons">
+            <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
+          </div>
+        </div>
+        <div class="algorithm-card">
+          <h3>Merge Sort</h3>
+          <img src="https://www.programiz.com/sites/tutorial2program/files/merge-sort-example_0.png" alt="Merge Sort" class="hero-image">
+          <p>Divide y conquista para ordenar eficientemente.</p>
+          <div class="card-buttons">
             <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
-      </div>
-    </div>
-    <div class="algorithm-card">
-      <h3>Insertion Sort</h3>
-      <p>Construye la lista ordenada uno por uno.</p>
-      <div class="card-buttons">
+            <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
+          </div>
+        </div>
+        <div class="algorithm-card">
+          <h3>Shell Sort</h3>
+          <img src="https://images.tpointtech.com/ds/images/shell-sort-algorithm4.png" alt="Shell Sort" class="hero-image">
+          <p>Versión mejorada del insertion sort con saltos.</p>
+          <div class="card-buttons">
             <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
+            <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="algorithm-card">
-      <h3>Merge Sort</h3>
-      <p>Divide y conquista para ordenar eficientemente.</p>
-      <div class="card-buttons">
-    <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
-      </div>
-    </div>
-    <div class="algorithm-card">
-      <h3>Shell Sort</h3>
-      <p>Versión mejorada del insertion sort con saltos.</p>
-      <div class="card-buttons">
-            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
-      </div>
-    </div>
-  </div>
-</div>
 
     <!-- FOOTER -->
     <footer class="footer">
@@ -139,7 +112,7 @@
 :root {
   --primary-color: #555B6E;     /* para navbar, texto fuerte */
   --secondary-color: #89B0AE;   /* botones y detalles suaves */
-  --background-color:rgb(255, 255, 255);  /* fondo general */
+  --background-color: rgb(255, 255, 255);  /* fondo general */
   --accent-color: #FFD6BA;      /* fondo de cajas destacadas */
   --text-color: #333333;        /* texto en general */
   --card-color: #BEE3DB;        /* tarjetas y fondos suaves */
@@ -173,10 +146,18 @@ body {
   padding: 0;
 }
 
-.nav-links a {
-  color: var(--text-color);
-  text-decoration: none;
-  font-weight: bold;
+/* Caja de la imagen */
+.image-container {
+  text-align: center;
+  margin-bottom: 1rem;
+  width: 100%; /* Para que ocupe todo el ancho disponible */
+}
+
+.hero-image {
+  width: 100%; /* Se adapta al tamaño del contenedor */
+  height: auto; /* Mantiene la proporción de la imagen */
+  border-radius: 8px;
+  margin-bottom: 1rem;
 }
 
 /* HERO */
@@ -187,6 +168,18 @@ body {
   margin: 1rem;
   border-radius: 10px;
   color: var(--primary-color);
+}
+
+.hero-content {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.hero-half {
+  flex: 1;
+  text-align: center;
 }
 
 .hero h1 {
@@ -201,84 +194,109 @@ body {
 
 .cta-button {
   display: inline-block;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.5rem;
   background-color: var(--secondary-color);
-  color: var(--background-color);
+  color: #fff;
   text-decoration: none;
   border-radius: 5px;
-  margin-top: 1rem;
   font-weight: bold;
+  transition: background-color 0.3s ease;
 }
 
-/* CARACTERÍSTICAS */
+.cta-button:hover {
+  background-color: var(--primary-color);
+}
+
+.hero-image {
+  height: auto;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.hero-half {
+  flex: 1;
+  margin: 1rem;
+}
+
 .features {
   display: flex;
   justify-content: space-around;
-  padding: 2rem;
-  flex-wrap: wrap;
-  background-color: var(--background-color);
+  margin: 2rem 0;
 }
 
 .feature {
-  text-align: center;
-  background-color: var(--accent-color);
-  padding: 1rem;
+  background-color: var(--card-color);
+  padding: 1.5rem;
   border-radius: 10px;
   width: 30%;
-  margin-bottom: 1rem;
-}
-
-.feature h2, .feature p {
-  color: var(--primary-color);
-}
-
-/* NUEVA SECCIÓN */
-.algorithms-section {
-  padding: 2rem;
-  background-color: var(--accent-color);
   text-align: center;
 }
 
-.algorithms-section h2 {
+.feature:hover {
+  background-color: var(--secondary-color);
+}
+
+.feature h2 {
+  font-size: 1.8rem;
   color: var(--primary-color);
-  margin-bottom: 1.5rem;
+}
+
+.feature p {
+  font-size: 1rem;
+  color: var(--primary-color);
+}
+
+/* SECCIÓN DE ALGORITMOS */
+.algorithms-section {
+  margin-top: 3rem;
 }
 
 .algorithm-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .algorithm-card {
-  background-color: var(--background-color);
+  background-color: var(--card-color);
+  padding: 2rem;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 1rem;
+  width: 22%;
+  text-align: center;
 }
 
 .algorithm-card h3 {
-  color: var(--primary-color);
+  font-size: 1.5rem;
+}
+
+.algorithm-card p {
+  font-size: 1.1rem;
 }
 
 .card-buttons {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   margin-top: 1rem;
 }
 
-.card-buttons .cta-button {
-  background-color: var(--secondary-color);
-  text-decoration: none;
-  padding: 0.5rem;
-  border-radius: 5px;
+.footer {
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 1rem;
+  text-align: center;
 }
 
-/* FOOTER */
-.footer {
-  text-align: center;
-  padding: 1rem;
-  background-color: var(--primary-color);
-  color: var(--background-color);
+.footer a {
+  color: #fff;
+  text-decoration: none;
 }
+
+.centered {
+  text-align: center;
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+}
+
 </style>
