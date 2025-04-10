@@ -1,4 +1,15 @@
 <template>
+  <div>
+   <nav class="navbar">
+      <img src="@/assets/logo.svg" alt="Logo" class="logo" />
+      <ul class="nav-links">
+        <li><router-link to="/">Inicio</router-link></li>
+        <li><router-link to="/graphs">Grafos</router-link></li>
+        <li><router-link to="/sort">Ordenamiento</router-link></li>
+        <li><router-link to="#">Contacto</router-link></li>
+      </ul>
+    </nav>
+  </div>
   <div class="graphs-page">
     <aside class="sidebar">
       <div class="sidebar-buttons">
@@ -1339,7 +1350,7 @@ export default {
   height: 95vh;
   background: #555B6E;
   position: absolute;
-  top: 50%;
+  top: 59%;
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 5px;
@@ -1763,5 +1774,32 @@ export default {
 }
 .close-button:hover {
   background: #c06ab8;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--primary-color);
+}
+
+.navbar .logo {
+  height: 40px;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: bold;
 }
 </style>
