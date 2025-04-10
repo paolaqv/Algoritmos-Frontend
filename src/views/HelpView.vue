@@ -1,15 +1,11 @@
 <template>
   <div v-if="showTour" class="tour-overlay">
     <!-- Primer cuadro (centrado) -->
-    <div 
-      v-if="currentStep === 0" 
-      class="tour-step welcome-step"
-      :style="welcomeStepStyle"
-    >
+    <div v-if="currentStep === 0" class="tour-step welcome-step" :style="welcomeStepStyle">
       <h3>Bienvenido al Tour de Ayuda</h3>
       <p>
-        Este tour te guiará a través de las principales funcionalidades de la aplicación.
-        Sigue los pasos para aprender cómo utilizar cada herramienta.
+        Este tour te guiará a través de las principales funcionalidades de la aplicación. Sigue los
+        pasos para aprender cómo utilizar cada herramienta.
       </p>
       <div class="button-group">
         <button @click="nextStep" class="next-button">Comenzar</button>
@@ -18,26 +14,22 @@
     </div>
 
     <!-- Cuadros de los pasos -->
-    <div 
-      v-if="currentStep > 0" 
-      class="tour-step"
-      :style="getStepStyle(currentStep - 1)"
-    >
+    <div v-if="currentStep > 0" class="tour-step" :style="getStepStyle(currentStep - 1)">
       <h3>
         <i :class="steps[currentStep - 1].icon"></i>
         {{ steps[currentStep - 1].title }}
       </h3>
       <p>{{ steps[currentStep - 1].description }}</p>
-      <div class="progress-indicator">
-        Paso {{ currentStep }} de {{ steps.length }}
-      </div>
+      <div class="progress-indicator">Paso {{ currentStep }} de {{ steps.length }}</div>
       <div class="button-group">
         <button v-if="currentStep > 1" @click="prevStep" class="prev-button">Atrás</button>
         <button @click="nextStep" class="next-button">
-          {{ currentStep === steps.length ? "Finalizar" : "Siguiente" }}
+          {{ currentStep === steps.length ? 'Finalizar' : 'Siguiente' }}
         </button>
         <!-- Mostrar el botón "Cerrar" solo si no es el último paso -->
-        <button v-if="currentStep !== steps.length" @click="closeHelp" class="close-button">Cerrar</button>
+        <button v-if="currentStep !== steps.length" @click="closeHelp" class="close-button">
+          Cerrar
+        </button>
       </div>
     </div>
   </div>
@@ -50,90 +42,130 @@ export default {
       showTour: true,
       currentStep: 0,
       steps: [
-        { 
-          title: "Agregar Nodos", 
+        {
+          title: 'Matriz de Adyacencia',
+          description:
+            'Requiere un grafo dirigido o no dirigido con nodos conectados por aristas. La matriz debe tener una fila y una columna por cada nodo, representando las conexiones entre ellos. Si no hay conexión, el valor será 0 o infinito.',
+          icon: 'fas fa-th',
+          top: '-800px',
+          left: '-350px',
+        },
+        {
+          title: 'Algoritmo de Johnson',
+          description:
+            'Requiere un grafo ponderado dirigido sin ciclos negativos. El algoritmo calcula los caminos más cortos entre todos los pares de nodos en el grafo, utilizando una técnica de reetiquetado y el algoritmo de Dijkstra. Asegúrese de que todos los nodos estén conectados por aristas con pesos definidos.',
+          icon: 'fas fa-project-diagram',
+          top: '-800px',
+          left: '-270px',
+        },
+        {
+          title: 'Método Northwest',
+          description:
+            'Requiere una matriz de costos de transporte, donde las filas representan los orígenes y las columnas los destinos. Las celdas contienen los costos de transporte. El algoritmo asigna unidades de manera que minimice el costo total, comenzando desde la esquina noroeste de la matriz y asignando la cantidad máxima posible a cada celda hasta agotar los suministros o demandas.',
+          icon: 'fas fa-truck',
+          top: '-750px',
+          left: '-350px',
+        },
+        {
+          title: 'Minimizar Costo',
+          description:
+            'Requiere un grafo ponderado donde los nodos representan puntos de origen y destino, y las aristas representan rutas con costos asociados. El algoritmo busca una asignación óptima de recursos o caminos que minimice el costo total de transporte entre los nodos. Es útil para problemas de optimización de rutas o flujos con costos definidos.',
+          icon: 'fas fa-arrow-down',
+          top: '-750px',
+          left: '-270px',
+        },
+        {
+          title: 'Maximizar Beneficio',
+          description:
+            'Requiere un grafo donde las aristas tienen valores de beneficio entre los nodos. El algoritmo calcula una asignación de recursos o rutas que maximiza el beneficio total, considerando las ganancias entre los puntos de origen y destino. Este enfoque es útil para problemas de optimización en los que se buscan maximizar los beneficios de un flujo de recursos.',
+          icon: 'fas fa-arrow-up',
+          top: '-700px',
+          left: '-350px',
+        },
+        {
+          title: 'Agregar Nodos',
           description: "Haz clic en el botón '+' para agregar un nodo.",
-          icon: "fas fa-plus-circle",
-          top: "-260px", 
-          left: "150px"
+          icon: 'fas fa-plus-circle',
+          top: '-260px',
+          left: '150px',
         },
-        { 
-          title: "Enlazar Nodos", 
-          description: "Selecciona dos nodos para crear una conexión.",
-          icon: "fas fa-link",
-          top: "-260px", 
-          right: "450px"
+        {
+          title: 'Enlazar Nodos',
+          description: 'Selecciona dos nodos para crear una conexión.',
+          icon: 'fas fa-link',
+          top: '-260px',
+          right: '450px',
         },
-        { 
-          title: "Eliminar Nodos", 
-          description: "Selecciona un nodo para eliminarlo.",
-          icon: "fas fa-trash-alt",
-          top: "-243px", 
-          left: "290px"
+        {
+          title: 'Eliminar Nodos',
+          description: 'Selecciona un nodo para eliminarlo.',
+          icon: 'fas fa-trash-alt',
+          top: '-243px',
+          left: '290px',
         },
-        { 
-          title: "Mover Nodos", 
-          description: "Arrastra los nodos para cambiar su posición.",
-          icon: "fas fa-arrows-alt",
-          bottom: "80px", 
-          left: "50%",
-          transform: "translateX(-50%)" 
+        {
+          title: 'Mover Nodos',
+          description: 'Arrastra los nodos para cambiar su posición.',
+          icon: 'fas fa-arrows-alt',
+          bottom: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
         },
-        { 
-          title: "Editar Nodos y Aristas", 
-          description: "Modifica las propiedades de los elementos.",
-          icon: "fas fa-edit",
-          top: "-528%", 
-          left: "400px"
+        {
+          title: 'Editar Nodos y Aristas',
+          description: 'Modifica las propiedades de los elementos.',
+          icon: 'fas fa-edit',
+          top: '-528%',
+          left: '400px',
         },
-        { 
-          title: "Limpiar Pizarra", 
-          description: "Elimina todos los nodos y aristas.",
-          icon: "fas fa-eraser",
-          bottom: "80px", 
-          right: "200px"
-        }
+        {
+          title: 'Limpiar Pizarra',
+          description: 'Elimina todos los nodos y aristas.',
+          icon: 'fas fa-eraser',
+          bottom: '80px',
+          right: '200px',
+        },
       ],
-    };
+    }
   },
   computed: {
     welcomeStepStyle() {
       return {
-        top: "-800%",
-        left: "50%",
-        transform: "translate(-50%, -50%)"
-      };
-    }
+        top: '-800%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+      }
+    },
   },
   methods: {
     nextStep() {
       if (this.currentStep < this.steps.length) {
-        this.currentStep++;
+        this.currentStep++
       } else {
-        this.closeHelp();
+        this.closeHelp()
       }
     },
     prevStep() {
       if (this.currentStep > 0) {
-        this.currentStep--;
+        this.currentStep--
       }
     },
     closeHelp() {
-      this.showTour = false;
-      this.$emit("close");
+      this.showTour = false
+      this.$emit('close')
     },
     getStepStyle(stepIndex) {
-      const step = this.steps[stepIndex];
+      const step = this.steps[stepIndex]
       return {
         top: step.top,
         left: step.left,
         right: step.right,
         bottom: step.bottom,
-        transform: step.transform
-      };
-    }
-  }
-};
+        transform: step.transform,
+      }
+    },
+  },
+}
 </script>
 
 <style scoped>
@@ -160,7 +192,7 @@ export default {
 
 h3 i {
   margin-right: 8px;
-  color: #41658A;
+  color: #41658a;
 }
 
 .progress-indicator {
@@ -182,7 +214,9 @@ button {
   border-radius: 8px;
   cursor: pointer;
   font-size: 1em;
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition:
+    background 0.3s ease,
+    transform 0.2s ease;
 }
 
 button:hover {
@@ -190,30 +224,30 @@ button:hover {
 }
 
 .next-button {
-  background: #41658A;
+  background: #41658a;
   color: white;
 }
 
 .next-button:hover {
-  background: #D6D1B1;
+  background: #d6d1b1;
 }
 
 .prev-button {
-  background: #F0B67F;
+  background: #f0b67f;
   color: white;
 }
 
 .prev-button:hover {
-  background: #D6D1B1;
+  background: #d6d1b1;
 }
 
 .close-button {
-  background: #F0B67F;
+  background: #f0b67f;
   color: white;
 }
 
 .close-button:hover {
-  background: #D6D1B1;
+  background: #d6d1b1;
 }
 
 /* Media Queries para hacerlo responsivo */
