@@ -51,32 +51,32 @@
       <h3>Matriz de Adyacencia</h3>
       <p>Representación compacta de grafos mediante matrices.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
+        <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
     <div class="algorithm-card">
       <h3>North West</h3>
       <p>Método inicial para problemas de transporte.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
+            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
     <div class="algorithm-card">
       <h3>Johnson</h3>
       <p>Encuentra caminos más cortos entre todos los pares de nodos.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
+            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
     <div class="algorithm-card">
       <h3>Asignación</h3>
       <p>Algoritmo para asignar tareas u optimizar recursos.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
+           <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
   </div>
@@ -90,32 +90,32 @@
       <h3>Selection Sort</h3>
       <p>Ordenamiento simple basado en selecciones sucesivas.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
+            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
     <div class="algorithm-card">
       <h3>Insertion Sort</h3>
       <p>Construye la lista ordenada uno por uno.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
+            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
     <div class="algorithm-card">
       <h3>Merge Sort</h3>
       <p>Divide y conquista para ordenar eficientemente.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
+    <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
     <div class="algorithm-card">
       <h3>Shell Sort</h3>
       <p>Versión mejorada del insertion sort con saltos.</p>
       <div class="card-buttons">
-        <router-link to="/graphs" class="cta-button scale-up">Conocer más</router-link>
-        <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
+            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+        <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
       </div>
     </div>
   </div>
