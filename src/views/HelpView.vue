@@ -47,40 +47,40 @@ export default {
           description:
             'Requiere un grafo dirigido o no dirigido con nodos conectados por aristas. La matriz debe tener una fila y una columna por cada nodo, representando las conexiones entre ellos. Si no hay conexión, el valor será 0 o infinito.',
           icon: 'fas fa-th',
-          top: '-800px',
-          left: '-350px',
+          top: '-700px',
+          left: '-250px',
         },
         {
           title: 'Algoritmo de Johnson',
           description:
             'Requiere un grafo ponderado dirigido sin ciclos negativos. El algoritmo calcula los caminos más cortos entre todos los pares de nodos en el grafo, utilizando una técnica de reetiquetado y el algoritmo de Dijkstra. Asegúrese de que todos los nodos estén conectados por aristas con pesos definidos.',
           icon: 'fas fa-project-diagram',
-          top: '-800px',
-          left: '-270px',
+          top: '-700px',
+          left: '-170px',
         },
         {
           title: 'Método Northwest',
           description:
             'Requiere una matriz de costos de transporte, donde las filas representan los orígenes y las columnas los destinos. Las celdas contienen los costos de transporte. El algoritmo asigna unidades de manera que minimice el costo total, comenzando desde la esquina noroeste de la matriz y asignando la cantidad máxima posible a cada celda hasta agotar los suministros o demandas.',
           icon: 'fas fa-truck',
-          top: '-750px',
-          left: '-350px',
+          top: '-650px',
+          left: '-250px',
         },
         {
           title: 'Minimizar Costo',
           description:
             'Requiere un grafo ponderado donde los nodos representan puntos de origen y destino, y las aristas representan rutas con costos asociados. El algoritmo busca una asignación óptima de recursos o caminos que minimice el costo total de transporte entre los nodos. Es útil para problemas de optimización de rutas o flujos con costos definidos.',
           icon: 'fas fa-arrow-down',
-          top: '-750px',
-          left: '-270px',
+          top: '-650px',
+          left: '-170px',
         },
         {
           title: 'Maximizar Beneficio',
           description:
             'Requiere un grafo donde las aristas tienen valores de beneficio entre los nodos. El algoritmo calcula una asignación de recursos o rutas que maximiza el beneficio total, considerando las ganancias entre los puntos de origen y destino. Este enfoque es útil para problemas de optimización en los que se buscan maximizar los beneficios de un flujo de recursos.',
           icon: 'fas fa-arrow-up',
-          top: '-700px',
-          left: '-350px',
+          top: '-600px',
+          left: '-250px',
         },
         {
           title: 'Agregar Nodos',
@@ -175,30 +175,31 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(85, 91, 110, 0.2); /* tono del color más oscuro con transparencia */
   z-index: 1000;
 }
 
 .tour-step {
   position: absolute;
-  background: rgb(255, 240, 182);
+  background: #bee3db; /* verde menta claro como fondo */
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 4px 20px rgba(85, 91, 110, 0.3); /* sombra basada en el color oscuro */
   text-align: center;
-  width: 300px; /* Ancho fijo */
+  width: 300px;
   z-index: 1001;
+  color: #555b6e; /* texto con el color oscuro para buen contraste */
 }
 
 h3 i {
   margin-right: 8px;
-  color: #41658a;
+  color: #89b0ae; /* verde grisáceo suave */
 }
 
 .progress-indicator {
   margin: 10px 0;
   font-size: 0.9em;
-  color: #666;
+  color: #555b6e; /* tono más oscuro para legibilidad */
 }
 
 .button-group {
@@ -217,6 +218,7 @@ button {
   transition:
     background 0.3s ease,
     transform 0.2s ease;
+  color: #faf9f9; /* texto claro */
 }
 
 button:hover {
@@ -224,36 +226,37 @@ button:hover {
 }
 
 .next-button {
-  background: #41658a;
-  color: white;
+  background: #555b6e; /* oscuro */
 }
 
 .next-button:hover {
-  background: #d6d1b1;
+  background: #89b0ae; /* verde grisáceo suave */
 }
 
 .prev-button {
-  background: #f0b67f;
-  color: white;
+  background: #ffd6ba; /* durazno */
+  color: #555b6e; /* más contraste para este fondo claro */
 }
 
 .prev-button:hover {
-  background: #d6d1b1;
+  background: #89b0ae;
+  color: #faf9f9;
 }
 
 .close-button {
-  background: #f0b67f;
-  color: white;
+  background: #ffd6ba;
+  color: #555b6e;
 }
 
 .close-button:hover {
-  background: #d6d1b1;
+  background: #89b0ae;
+  color: #faf9f9;
 }
 
 /* Media Queries para hacerlo responsivo */
 @media (max-width: 768px) {
   .tour-step {
-    width: 250px; /* Reducir el ancho en pantallas pequeñas */
+    width: 250px;
     padding: 15px;
   }
 
@@ -262,7 +265,6 @@ button:hover {
     font-size: 0.9em;
   }
 
-  /* Ajustar posiciones en pantallas pequeñas */
   .tour-step {
     top: auto !important;
     bottom: 20px !important;

@@ -1410,7 +1410,7 @@ export default {
   justify-content: center;
   align-items: center;
   font-size: 20px;
-  color: white;
+  color: #555b6e;
   position: relative;
 }
 
@@ -1617,7 +1617,7 @@ export default {
   width: 90px;
   height: 40px;
   background: #FFD6BA;
-  color: #fff;
+  color: #555b6e;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -1672,7 +1672,7 @@ export default {
   border: none;
   border-radius: 10px;
   background-color: #BEE3DB;
-  color: white;
+  color: #555b6e;
   font-size: 12px;
   cursor: pointer;
   transition:
