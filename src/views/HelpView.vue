@@ -47,83 +47,88 @@ export default {
           description:
             'Requiere un grafo dirigido o no dirigido con nodos conectados por aristas. La matriz debe tener una fila y una columna por cada nodo, representando las conexiones entre ellos. Si no hay conexión, el valor será 0 o infinito.',
           icon: 'fas fa-th',
-          top: '-700px',
-          left: '-250px',
+          top: '0',
+          left: '0',
         },
         {
           title: 'Algoritmo de Johnson',
           description:
             'Requiere un grafo ponderado dirigido sin ciclos negativos. El algoritmo calcula los caminos más cortos entre todos los pares de nodos en el grafo, utilizando una técnica de reetiquetado y el algoritmo de Dijkstra. Asegúrese de que todos los nodos estén conectados por aristas con pesos definidos.',
           icon: 'fas fa-project-diagram',
-          top: '-700px',
-          left: '-170px',
+          top: '0',
+          left: '70',
         },
         {
           title: 'Método Northwest',
           description:
             'Requiere una matriz de costos de transporte, donde las filas representan los orígenes y las columnas los destinos. Las celdas contienen los costos de transporte. El algoritmo asigna unidades de manera que minimice el costo total, comenzando desde la esquina noroeste de la matriz y asignando la cantidad máxima posible a cada celda hasta agotar los suministros o demandas.',
           icon: 'fas fa-truck',
-          top: '-650px',
-          left: '-250px',
+          top: '70',
+          left: '0',
         },
         {
           title: 'Minimizar Costo',
           description:
             'Requiere un grafo ponderado donde los nodos representan puntos de origen y destino, y las aristas representan rutas con costos asociados. El algoritmo busca una asignación óptima de recursos o caminos que minimice el costo total de transporte entre los nodos. Es útil para problemas de optimización de rutas o flujos con costos definidos.',
           icon: 'fas fa-arrow-down',
-          top: '-650px',
-          left: '-170px',
+          top: '70',
+          left: '70',
         },
         {
           title: 'Maximizar Beneficio',
           description:
             'Requiere un grafo donde las aristas tienen valores de beneficio entre los nodos. El algoritmo calcula una asignación de recursos o rutas que maximiza el beneficio total, considerando las ganancias entre los puntos de origen y destino. Este enfoque es útil para problemas de optimización en los que se buscan maximizar los beneficios de un flujo de recursos.',
           icon: 'fas fa-arrow-up',
-          top: '-600px',
-          left: '-250px',
+          top: '140',
+          left: '0',
         },
         {
           title: 'Agregar Nodos',
           description: "Haz clic en el botón '+' para agregar un nodo.",
           icon: 'fas fa-plus-circle',
-          top: '-260px',
-          left: '150px',
+          top: '0',
+          left: '450',
+          isBottom: true
         },
         {
           title: 'Enlazar Nodos',
           description: 'Selecciona dos nodos para crear una conexión.',
           icon: 'fas fa-link',
-          top: '-260px',
-          right: '450px',
+          top: '0',
+          left: '520',
+          isBottom: true
         },
         {
           title: 'Eliminar Nodos',
           description: 'Selecciona un nodo para eliminarlo.',
           icon: 'fas fa-trash-alt',
-          top: '-243px',
-          left: '290px',
+          top: '0',
+          left: '590',
+          isBottom: true
         },
         {
           title: 'Mover Nodos',
           description: 'Arrastra los nodos para cambiar su posición.',
           icon: 'fas fa-arrows-alt',
-          bottom: '80px',
-          left: '50%',
-          transform: 'translateX(-50%)',
+          top: '0',
+          left: '660',
+          isBottom: true
         },
         {
           title: 'Editar Nodos y Aristas',
           description: 'Modifica las propiedades de los elementos.',
           icon: 'fas fa-edit',
-          top: '-528%',
-          left: '400px',
+          top: '0',
+          left: '730',
+          isBottom: true
         },
         {
           title: 'Limpiar Pizarra',
           description: 'Elimina todos los nodos y aristas.',
           icon: 'fas fa-eraser',
-          bottom: '80px',
-          right: '200px',
+          top: '0',
+          left: '800',
+          isBottom: true
         },
       ],
     }
@@ -156,9 +161,21 @@ export default {
     },
     getStepStyle(stepIndex) {
       const step = this.steps[stepIndex]
+      const h = window.innerHeight;
+      console.log(step.top)
+      const w = window.innerWidth;
+      if (step.isBottom) {
+        return {
+          top: `${step.top - 370}px`,
+          left: `${step.left - w/7}px`,
+          right: step.right,
+          bottom: step.bottom,
+          transform: step.transform,
+        }
+      }
       return {
-        top: step.top,
-        left: step.left,
+        top: `${step.top - h + 200}px`,
+        left: `${step.left - w/7}px`,
         right: step.right,
         bottom: step.bottom,
         transform: step.transform,
