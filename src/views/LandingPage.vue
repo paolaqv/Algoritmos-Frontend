@@ -51,7 +51,50 @@
       </div>
     </div>
 
-    <!-- SECCIÓN ALGORITMOS DE ORDENAMIENTO -->
+    <!-- SECCIÓN ALGORITMOS GENERALES -->
+    <div class="algorithms-section">
+      <h2>Explora los Algoritmos</h2>
+      <div class="algorithm-cards">
+        <div class="algorithm-card">
+          <h3>Matriz de Adyacencia</h3>
+          <img src="https://matematicasies.com/local/cache-vignettes/L550xH234/maties_3461_b-0cdd9.png?1688043774" alt="Matriz de Adyacencia" class="hero-image">
+          <p>Representación compacta de grafos mediante matrices.</p>
+          <div class="card-buttons">
+            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+            <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
+          </div>
+        </div>
+        <div class="algorithm-card">
+          <h3>North West</h3>
+          <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgc88YRZXiMPug0I0REt9BBaWUZfnsg1mKj3XP74rIsy_a7a2yZdpBMsDwPpa7Pk-Fi1tua9T28SpdSCkuM4LbeHrTUK3pxvj7z3YoGi4U8Ok-nsJfqfR2JifKtRgfIcqJw-6tMnVWF_BSe/s1600/nwcmsolve.jpg" alt="North West" class="hero-image">
+          <p>Método inicial para problemas de transporte.</p>
+          <div class="card-buttons">
+            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+            <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
+          </div>
+        </div>
+        <div class="algorithm-card">
+          <h3>Johnson</h3>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Johnson%27s_algorithm.svg/540px-Johnson%27s_algorithm.svg.png" alt="Johnson" class="hero-image">
+          <p>Encuentra caminos más cortos entre todos los pares de nodos.</p>
+          <div class="card-buttons">
+            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+            <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
+          </div>
+        </div>
+        <div class="algorithm-card">
+          <h3>Asignación</h3>
+          <img src="https://proyectoinvestigacionoperaciones.wordpress.com/wp-content/uploads/2016/11/modelo.png?w=736" alt="Asignación" class="hero-image">
+          <p>Algoritmo para asignar tareas u optimizar recursos.</p>
+          <div class="card-buttons">
+            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+            <router-link to="#" class="cta-button scale-up">Ir al algoritmo</router-link>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- SECCIÓN ALGORITMOS DE ORDENAMIENTO -->
     <div class="algorithms-section">
       <h2 class="centered">Algoritmos de Ordenamiento</h2>
       <div class="algorithm-cards">
@@ -66,7 +109,7 @@
         </div>
         <div class="algorithm-card">
           <h3>Insertion Sort</h3>
-          <img src="https://i0.wp.com/bteccomputing.co.uk/wp-content/uploads/2020/03/insertionPic.png?w=640" alt="Insertion Sort" class="hero-image">
+          <img src="https://www.w3resource.com/w3r_images/insertion-sort.png" alt="Insertion Sort" class="hero-image">
           <p>Construye la lista ordenada uno por uno.</p>
           <div class="card-buttons">
             <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
@@ -93,7 +136,6 @@
         </div>
       </div>
     </div>
-
     <!-- FOOTER -->
     <footer class="footer">
       <p>
@@ -291,12 +333,4 @@ body {
   color: #fff;
   text-decoration: none;
 }
-
-.centered {
-  text-align: center;
-  font-size: 2.5rem;
-  color: var(--primary-color);
-  margin-bottom: 1.5rem;
-}
-
 </style>
