@@ -2,11 +2,11 @@
   <div class="graphs-page">
     <aside class="sidebar">
       <div class="sidebar-buttons">
-        <button class="sidebar-button" @click="openMatrixPopup">matriz adyacente</button>
-        <button class="sidebar-button" @click="runJohnson">jonhson</button>
-        <button class="sidebar-button" @click="showNorthWestHelp = true">NorthWest</button>
-        <button class="sidebar-button" @click="solveAssignment('min')">Minimizar</button>
-        <button class="sidebar-button" @click="solveAssignment('max')">Maximizar</button>
+        <button id= "btn-matriz" class="sidebar-button" @click="openMatrixPopup">matriz adyacente</button>
+        <button id= "btn-johnson" class="sidebar-button" @click="runJohnson">jonhson</button>
+        <button id= "btn-northwest" class="sidebar-button" @click="showNorthWestHelp = true">NorthWest</button>
+        <button id= "btn-minimizar" class="sidebar-button" @click="solveAssignment('min')">Minimizar</button>
+        <button id= "btn-maximizar" class="sidebar-button" @click="solveAssignment('max')">Maximizar</button>
       </div>
     </aside>
     <main ref="contentArea" class="content" @click="openNodePopup">
