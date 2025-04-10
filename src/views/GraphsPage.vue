@@ -1647,7 +1647,7 @@ export default {
 }
 .edge-path:hover {
   stroke-width: 3;
-  stroke: #ff0000;
+  stroke: #110b26;
 }
 /*sidebar*/
 .sidebar {
