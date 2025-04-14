@@ -1,6 +1,6 @@
 <template>
   <div>
-   <nav class="navbar">
+    <nav class="navbar">
       <img src="@/assets/logo.svg" alt="Logo" class="logo" />
       <ul class="nav-links">
         <li><router-link to="/">Inicio</router-link></li>
@@ -13,11 +13,16 @@
   <div class="graphs-page">
     <aside class="sidebar">
       <div class="sidebar-buttons">
-        <button id= "btn-matriz" class="sidebar-button" @click="openMatrixPopup">matriz adyacente</button>
-        <button id= "btn-johnson" class="sidebar-button" @click="runJohnson">jonhson</button>
-        <button id= "btn-northwest" class="sidebar-button" @click="showNorthWestHelp = true">NorthWest</button>
-        <button id= "btn-minimizar" class="sidebar-button" @click="solveAssignment('min')">Minimizar</button>
-        <button id= "btn-maximizar" class="sidebar-button" @click="solveAssignment('max')">Maximizar</button>
+        <button id="btn-matriz" class="sidebar-button" @click="openMatrixPopup">
+          matriz adyacente
+        </button>
+        <button id="btn-johnson" class="sidebar-button" @click="runJohnson">jonhson</button>
+        <button id="btn-northwest" class="sidebar-button" @click="showNorthWestHelp = true">
+          NorthWest
+        </button>
+        <button id="btn-asignacion" class="sidebar-button" @click="openAssignmentModal">
+          Asignacion
+        </button>
       </div>
     </aside>
     <main ref="contentArea" class="content" @click="openNodePopup">
@@ -73,8 +78,24 @@
       <!-- Modal para mostrar resultados de asignación -->
       <div v-if="showAssignmentModal" class="modal-overlay" @click.self="closeAssignmentModal">
         <div class="modal-content">
+          <div class="modal-tabs">
+            <button
+              @click="activeAssignmentTab = 'min'"
+              :class="{ active: activeAssignmentTab === 'min' }"
+            >
+              Minimización
+            </button>
+            <button
+              @click="activeAssignmentTab = 'max'"
+              :class="{ active: activeAssignmentTab === 'max' }"
+            >
+              Maximización
+            </button>
+          </div>
           <h2>
-            Resultado de la Asignación ({{ assignmentMode === 'min' ? 'Minimizar' : 'Maximizar' }})
+            Resultado de la Asignación ({{
+              activeAssignmentTab === 'min' ? 'Minimizar' : 'Maximizar'
+            }})
           </h2>
           <div class="matrix-container">
             <table>
@@ -87,18 +108,33 @@
               <tbody>
                 <tr v-for="(nodeA, i) in groupA" :key="i">
                   <th>{{ nodeA.name }}</th>
-                  <td v-for="(nodeB, j) in groupB" :key="j">
-                    {{ assignmentMatrix[i][j] }}
+                  <td
+                    v-for="(nodeB, j) in groupB"
+                    :key="j"
+                    :class="{
+                      'highlight-cell': isOptimalAssignment(i, j, activeAssignmentTab),
+                    }"
+                  >
+                    {{
+                      activeAssignmentTab === 'min'
+                        ? assignmentResults.min.matrix[i][j]
+                        : assignmentResults.max.maxVal - assignmentResults.max.matrix[i][j]
+                    }}
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div class="assignment-result">
-            <p><strong>Costo Total:</strong> {{ totalCost }}</p>
+            <p>
+              <strong>Costo Total:</strong> {{ assignmentResults[activeAssignmentTab].totalCost }}
+            </p>
             <p><strong>Asignaciones Óptimas:</strong></p>
             <ul>
-              <li v-for="(pair, index) in optimalAssignment" :key="index">
+              <li
+                v-for="(pair, index) in assignmentResults[activeAssignmentTab].optimalAssignment"
+                :key="index"
+              >
                 {{ pair.nodeA.name }} → {{ pair.nodeB.name }} (Costo: {{ pair.cost }})
               </li>
             </ul>
@@ -106,7 +142,6 @@
           <button class="close-button" @click="closeAssignmentModal">Cerrar</button>
         </div>
       </div>
-
       <!-- Popup para matriz de adyacencia -->
       <div v-if="showMatrixPopup" class="matrix-popup" :style="matrixPopupStyle">
         <div class="matrix-popup-header" @mousedown="onPopupHeaderMouseDown">
@@ -146,14 +181,14 @@
       </div>
       <!-- Popup para resultados de Johnson -->
       <JohnsonPopup
-          v-if="showJohnsonPopup"
-          :nodes="nodes"
-          :edges="edges"
-          :results="johnsonResults"
-          :popupStyle="matrixPopupStyle"
-          @close="closeJohnsonPopup"
-          @start-drag="onPopupHeaderMouseDown"
-          @start-resize="startResizing"
+        v-if="showJohnsonPopup"
+        :nodes="nodes"
+        :edges="edges"
+        :results="johnsonResults"
+        :popupStyle="matrixPopupStyle"
+        @close="closeJohnsonPopup"
+        @start-drag="onPopupHeaderMouseDown"
+        @start-resize="startResizing"
       />
       <NorthWestPopup
         v-if="showNorthWestPopup"
@@ -163,9 +198,13 @@
       />
       <HelpNorthWest
         v-if="showNorthWestHelp"
-        @skip="() => { showNorthWestHelp = false; showNorthWestPopup = true }"
+        @skip="
+          () => {
+            showNorthWestHelp = false
+            showNorthWestPopup = true
+          }
+        "
       />
-
     </main>
 
     <footer class="bottom-bar">
@@ -317,18 +356,16 @@
 import HelpView from './HelpView.vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
-import JohnsonPopup from '../components/JohnsonPopup.vue' 
+import JohnsonPopup from '../components/JohnsonPopup.vue'
 import NorthWestPopup from '../components/NorthWestPopup.vue'
 import HelpNorthWest from '../components/HelpNorthWest.vue'
-
 
 export default {
   components: {
     JohnsonPopup,
     HelpView,
     NorthWestPopup,
-    HelpNorthWest
-
+    HelpNorthWest,
   },
 
   name: 'GraphsPage',
@@ -389,6 +426,11 @@ export default {
       showJohnsonPopup: false,
       johnsonResults: {},
       // Propiedades para modal asignación
+      assignmentResults: {
+        min: null,
+        max: null,
+      },
+      activeAssignmentTab: 'min', // min o max
       showAssignmentModal: false,
       assignmentMatrix: [],
       totalCost: 0,
@@ -400,32 +442,28 @@ export default {
       //NorthWest
       showNorthWestPopup: false,
       showNorthWestHelp: false,
-
-
     }
   },
 
   computed: {
-  rowSums() {
-    return this.adjacencyMatrix.map(row =>
-      row.reduce((acc, cell) => acc + Number(cell), 0)
-    );
+    rowSums() {
+      return this.adjacencyMatrix.map((row) => row.reduce((acc, cell) => acc + Number(cell), 0))
+    },
+    colSums() {
+      if (!this.adjacencyMatrix.length) return []
+      const cols = this.adjacencyMatrix[0].length
+      let sums = Array(cols).fill(0)
+      this.adjacencyMatrix.forEach((row) => {
+        row.forEach((cell, j) => {
+          sums[j] += Number(cell)
+        })
+      })
+      return sums
+    },
+    totalSum() {
+      return this.rowSums.reduce((a, b) => a + b, 0)
+    },
   },
-  colSums() {
-    if (!this.adjacencyMatrix.length) return [];
-    const cols = this.adjacencyMatrix[0].length;
-    let sums = Array(cols).fill(0);
-    this.adjacencyMatrix.forEach(row => {
-      row.forEach((cell, j) => {
-        sums[j] += Number(cell);
-      });
-    });
-    return sums;
-  },
-  totalSum() {
-    return this.rowSums.reduce((a, b) => a + b, 0);
-  }
-},
   methods: {
     toggleHelp() {
       this.isHelpActive = !this.isHelpActive // Cambia el estado de isHelpActive
@@ -458,167 +496,178 @@ export default {
       this.showMatrixPopup = false
     },
     checkGraphValidity() {
-    let errors = [];
-    // Construir mapas de entradas y salidas
-    const incoming = new Map();
-    const outgoing = new Map();
-    this.nodes.forEach(n => {
-      incoming.set(n.name, 0);
-      outgoing.set(n.name, 0);
-    });
-    this.edges.forEach(e => {
-      // Se asume que cada arista tiene propiedad weight y nodos identificados por name
-      outgoing.set(e.node1.name, outgoing.get(e.node1.name) + 1);
-      incoming.set(e.node2.name, incoming.get(e.node2.name) + 1);
-    });
-    // Nodo de inicio: sin entradas
-    const startNodes = this.nodes.filter(n => incoming.get(n.name) === 0);
-    if (startNodes.length === 0) {
-      errors.push("No se encontró un nodo de inicio (sin entradas).");
-    }
-    // Nodo final: sin salidas
-    const endNodes = this.nodes.filter(n => outgoing.get(n.name) === 0);
-    if (endNodes.length === 0) {
-      errors.push("No se encontró un nodo final (sin salidas).");
-    }
-    // Verifica que no haya ciclos (utilizando DFS)
-    if (this.hasCycle()) {
-      errors.push("El grafo tiene ciclos.");
-    }
-    // Verifica que no existan pesos negativos
-    const negativeEdge = this.edges.find(e => Number(e.weight) < 0);
-    if (negativeEdge) {
-      errors.push("El grafo tiene pesos negativos.");
-    }
-    return errors;
-  },
-
-  // Algoritmo DFS para detectar ciclos
-  hasCycle() {
-    const visited = new Set();
-    const recStack = new Set();
-    const adjList = new Map();
-    // Construir lista de adyacencia
-    this.nodes.forEach(n => {
-      adjList.set(n.name, []);
-    });
-    this.edges.forEach(e => {
-      adjList.get(e.node1.name).push(e.node2.name);
-    });
-    // Función auxiliar DFS
-    const dfs = (node) => {
-      if (recStack.has(node)) return true;
-      if (visited.has(node)) return false;
-      visited.add(node);
-      recStack.add(node);
-      const neighbors = adjList.get(node);
-      for (const nbr of neighbors) {
-        if (dfs(nbr)) return true;
+      let errors = []
+      // Construir mapas de entradas y salidas
+      const incoming = new Map()
+      const outgoing = new Map()
+      this.nodes.forEach((n) => {
+        incoming.set(n.name, 0)
+        outgoing.set(n.name, 0)
+      })
+      this.edges.forEach((e) => {
+        // Se asume que cada arista tiene propiedad weight y nodos identificados por name
+        outgoing.set(e.node1.name, outgoing.get(e.node1.name) + 1)
+        incoming.set(e.node2.name, incoming.get(e.node2.name) + 1)
+      })
+      // Nodo de inicio: sin entradas
+      const startNodes = this.nodes.filter((n) => incoming.get(n.name) === 0)
+      if (startNodes.length === 0) {
+        errors.push('No se encontró un nodo de inicio (sin entradas).')
       }
-      recStack.delete(node);
-      return false;
-    };
-    // Recorre cada nodo
-    for (const node of this.nodes.map(n => n.name)) {
-      if (dfs(node)) return true;
-    }
-    return false;
-  },
-  //NorthWest help---------------------------------------------------
-  runNorthWest() {
-    this.showNorthWestHelp = false
-    this.showNorthWestPopup = true
-  },
+      // Nodo final: sin salidas
+      const endNodes = this.nodes.filter((n) => outgoing.get(n.name) === 0)
+      if (endNodes.length === 0) {
+        errors.push('No se encontró un nodo final (sin salidas).')
+      }
+      // Verifica que no haya ciclos (utilizando DFS)
+      if (this.hasCycle()) {
+        errors.push('El grafo tiene ciclos.')
+      }
+      // Verifica que no existan pesos negativos
+      const negativeEdge = this.edges.find((e) => Number(e.weight) < 0)
+      if (negativeEdge) {
+        errors.push('El grafo tiene pesos negativos.')
+      }
+      return errors
+    },
+
+    // Algoritmo DFS para detectar ciclos
+    hasCycle() {
+      const visited = new Set()
+      const recStack = new Set()
+      const adjList = new Map()
+      // Construir lista de adyacencia
+      this.nodes.forEach((n) => {
+        adjList.set(n.name, [])
+      })
+      this.edges.forEach((e) => {
+        adjList.get(e.node1.name).push(e.node2.name)
+      })
+      // Función auxiliar DFS
+      const dfs = (node) => {
+        if (recStack.has(node)) return true
+        if (visited.has(node)) return false
+        visited.add(node)
+        recStack.add(node)
+        const neighbors = adjList.get(node)
+        for (const nbr of neighbors) {
+          if (dfs(nbr)) return true
+        }
+        recStack.delete(node)
+        return false
+      }
+      // Recorre cada nodo
+      for (const node of this.nodes.map((n) => n.name)) {
+        if (dfs(node)) return true
+      }
+      return false
+    },
+    //NorthWest help---------------------------------------------------
+    runNorthWest() {
+      this.showNorthWestHelp = false
+      this.showNorthWestPopup = true
+    },
 
     //Johnson-----------------------------------------------
     async runJohnson() {
-      const errors = this.checkGraphValidity();
+      const errors = this.checkGraphValidity()
       if (errors.length > 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Grafo inválido",
-        html: errors.join("<br>")
-      });
-      return;
-    }
-    try {
-        console.log("Iniciando el proceso de ejecución de Johnson...");
+        Swal.fire({
+          icon: 'error',
+          title: 'Grafo inválido',
+          html: errors.join('<br>'),
+        })
+        return
+      }
+      try {
+        console.log('Iniciando el proceso de ejecución de Johnson...')
 
-        const edgesFormatted = this.edges.map(edge => {
-            const sourceNode = this.nodes.find(n => n.id === edge.node1.id);
-            const targetNode = this.nodes.find(n => n.id === edge.node2.id);
+        const edgesFormatted = this.edges
+          .map((edge) => {
+            const sourceNode = this.nodes.find((n) => n.id === edge.node1.id)
+            const targetNode = this.nodes.find((n) => n.id === edge.node2.id)
 
             if (!sourceNode || !targetNode) {
-                console.error(`❌ Nodo no encontrado: ${!sourceNode ? edge.node1.id : edge.node2.id}`);
-                return null;
+              console.error(`❌ Nodo no encontrado: ${!sourceNode ? edge.node1.id : edge.node2.id}`)
+              return null
             }
 
-            console.log(`✅ Nodo encontrado: ${sourceNode.name} -> ${targetNode.name}, Peso: ${edge.weight}`);
+            console.log(
+              `✅ Nodo encontrado: ${sourceNode.name} -> ${targetNode.name}, Peso: ${edge.weight}`,
+            )
 
             return {
-                node1: { name: sourceNode.name },
-                node2: { name: targetNode.name },
-                weight: Number(edge.weight)
-            };
-        }).filter(edge => edge !== null);
+              node1: { name: sourceNode.name },
+              node2: { name: targetNode.name },
+              weight: Number(edge.weight),
+            }
+          })
+          .filter((edge) => edge !== null)
 
         if (edgesFormatted.length === 0) {
-            console.error("❌ No se encontraron aristas válidas después del formateo.");
-            Swal.fire({
-                icon: 'error',
-                title: 'Error en Johnson',
-                text: 'No se encontraron aristas válidas para procesar.'
-            });
-            return;
-        }
-
-        console.log("Aristas formateadas para enviar al backend:", JSON.stringify(edgesFormatted, null, 2));
-
-        const nodesFormatted = this.nodes.map(node => ({
-            id: node.id,
-            x: node.x,
-            y: node.y,
-            name: node.name,
-            color: node.color
-        }));
-
-        console.log("Nodos formateados para enviar al backend:", JSON.stringify(nodesFormatted, null, 2));
-
-        const response = await axios.post('http://127.0.0.1:5000/graph/johnson', {
-            nodes: nodesFormatted,
-            edges: edgesFormatted
-        });
-
-        console.log("📥 Respuesta recibida del backend:", response.data);
-
-        const { distances, h_values, critical_path, early_times, late_times, edges } = response.data;
-
-        if (!distances || !h_values || !critical_path || !early_times || !late_times || !edges) {
-            console.error("❌ Error: El formato de la respuesta del backend es incorrecto o faltan datos.");
-            throw new Error("El formato de la respuesta es incorrecto o faltan datos.");
-        }
-
-        this.johnsonResults = { 
-            distances, 
-            h_values, 
-            critical_path, 
-            early_times, 
-            late_times,
-            edges
-        };
-
-        console.log("✅ Johnson ejecutado correctamente. Resultados:", this.johnsonResults);
-        this.showJohnsonPopup = true;
-
-    } catch (error) {
-        console.error("❌ Error en Johnson:", error);
-        Swal.fire({
+          console.error('❌ No se encontraron aristas válidas después del formateo.')
+          Swal.fire({
             icon: 'error',
             title: 'Error en Johnson',
-            text: error.message || 'Error al procesar el grafo con Johnson.'
-        });
-    }
-},
+            text: 'No se encontraron aristas válidas para procesar.',
+          })
+          return
+        }
+
+        console.log(
+          'Aristas formateadas para enviar al backend:',
+          JSON.stringify(edgesFormatted, null, 2),
+        )
+
+        const nodesFormatted = this.nodes.map((node) => ({
+          id: node.id,
+          x: node.x,
+          y: node.y,
+          name: node.name,
+          color: node.color,
+        }))
+
+        console.log(
+          'Nodos formateados para enviar al backend:',
+          JSON.stringify(nodesFormatted, null, 2),
+        )
+
+        const response = await axios.post('http://127.0.0.1:5000/graph/johnson', {
+          nodes: nodesFormatted,
+          edges: edgesFormatted,
+        })
+
+        console.log('📥 Respuesta recibida del backend:', response.data)
+
+        const { distances, h_values, critical_path, early_times, late_times, edges } = response.data
+
+        if (!distances || !h_values || !critical_path || !early_times || !late_times || !edges) {
+          console.error(
+            '❌ Error: El formato de la respuesta del backend es incorrecto o faltan datos.',
+          )
+          throw new Error('El formato de la respuesta es incorrecto o faltan datos.')
+        }
+
+        this.johnsonResults = {
+          distances,
+          h_values,
+          critical_path,
+          early_times,
+          late_times,
+          edges,
+        }
+
+        console.log('✅ Johnson ejecutado correctamente. Resultados:', this.johnsonResults)
+        this.showJohnsonPopup = true
+      } catch (error) {
+        console.error('❌ Error en Johnson:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error en Johnson',
+          text: error.message || 'Error al procesar el grafo con Johnson.',
+        })
+      }
+    },
     closeJohnsonPopup() {
       console.log('Cerrando popup de Johnson desde el componente padre')
       this.showJohnsonPopup = false
@@ -1048,7 +1097,6 @@ export default {
     },
     // handleFileImport(event) {
 
-
     //   const file = event.target.files[0]
     //   if (!file) return
 
@@ -1089,63 +1137,65 @@ export default {
 
     // Botón para resolver la asignación; mode = 'min' o 'max'
     handleFileImport(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+      const file = event.target.files[0]
+      if (!file) return
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
         try {
-            const data = JSON.parse(e.target.result);
+          const data = JSON.parse(e.target.result)
 
-            if (data.nodes && data.edges) {
-                // Cargar nodos
-                this.nodes = data.nodes.map(node => ({
-                    id: node.id,
-                    x: node.x,
-                    y: node.y,
-                    name: node.name,
-                    color: node.color
-                }));
+          if (data.nodes && data.edges) {
+            // Cargar nodos
+            this.nodes = data.nodes.map((node) => ({
+              id: node.id,
+              x: node.x,
+              y: node.y,
+              name: node.name,
+              color: node.color,
+            }))
 
-                // Crear un mapa para acceder a los nodos por su nombre
-                const nodeMap = {};
-                this.nodes.forEach(node => {
-                    nodeMap[node.name] = node;  // Mapear usando 'name' en lugar de 'id'
-                });
+            // Crear un mapa para acceder a los nodos por su nombre
+            const nodeMap = {}
+            this.nodes.forEach((node) => {
+              nodeMap[node.name] = node // Mapear usando 'name' en lugar de 'id'
+            })
 
-                // Cargar aristas y calcular sus posiciones
-                this.edges = data.edges.map(edge => {
-                    const sourceNode = nodeMap[edge.node1.name];  // Buscar por 'name'
-                    const targetNode = nodeMap[edge.node2.name];  // Buscar por 'name'
-                    
-                    if (!sourceNode || !targetNode) {
-                        console.error("Error al encontrar nodos para arista: ", edge);
-                        return null;
-                    }
+            // Cargar aristas y calcular sus posiciones
+            this.edges = data.edges
+              .map((edge) => {
+                const sourceNode = nodeMap[edge.node1.name] // Buscar por 'name'
+                const targetNode = nodeMap[edge.node2.name] // Buscar por 'name'
 
-                    // Generar la propiedad 'calculated' usando tu método existente
-                    const calculatedPositions = this.calculateEdgePosition(sourceNode, targetNode);
+                if (!sourceNode || !targetNode) {
+                  console.error('Error al encontrar nodos para arista: ', edge)
+                  return null
+                }
 
-                    return {
-                        node1: sourceNode,
-                        node2: targetNode,
-                        weight: edge.weight,
-                        direction: edge.direction || 'directed',
-                        color: edge.color || '#000000',
-                        calculated: calculatedPositions  // Generar las posiciones calculadas
-                    };
-                }).filter(edge => edge !== null); // Filtrar aristas inválidas
+                // Generar la propiedad 'calculated' usando tu método existente
+                const calculatedPositions = this.calculateEdgePosition(sourceNode, targetNode)
 
-                console.log("✅ Grafo importado exitosamente");
-            } else {
-                console.error("❌ El archivo JSON no tiene el formato correcto.");
-            }
+                return {
+                  node1: sourceNode,
+                  node2: targetNode,
+                  weight: edge.weight,
+                  direction: edge.direction || 'directed',
+                  color: edge.color || '#000000',
+                  calculated: calculatedPositions, // Generar las posiciones calculadas
+                }
+              })
+              .filter((edge) => edge !== null) // Filtrar aristas inválidas
+
+            console.log('✅ Grafo importado exitosamente')
+          } else {
+            console.error('❌ El archivo JSON no tiene el formato correcto.')
+          }
         } catch (error) {
-            console.error("❌ Error al importar el archivo JSON:", error);
+          console.error('❌ Error al importar el archivo JSON:', error)
         }
-    };
-    reader.readAsText(file);
-},    
+      }
+      reader.readAsText(file)
+    },
     solveAssignment(mode) {
       this.assignmentMode = mode
       // Paso 1: Detectar grupos automáticamente
@@ -1216,15 +1266,12 @@ export default {
     },
 
     // Construir la matriz de asignación a partir de groupA y groupB
-    buildAssignmentMatrix() {
-      // Inicializar matriz con valores altos (infinito) para representar ausencia de conexión
+    buildAssignmentMatrix(mode) {
       const INF = 1e9
       const matrix = []
-      // Se asume que, para cada par (nodeA, nodeB), si existe una arista, se usa su peso; si no, INF
       for (let i = 0; i < this.groupA.length; i++) {
         const row = []
         for (let j = 0; j < this.groupB.length; j++) {
-          // Buscar una arista entre groupA[i] y groupB[j]
           const edge = this.edges.find(
             (e) =>
               (e.node1.name === this.groupA[i].name && e.node2.name === this.groupB[j].name) ||
@@ -1234,23 +1281,83 @@ export default {
         }
         matrix.push(row)
       }
-      // Si se selecciona maximización, transformamos la matriz
-      if (this.assignmentMode === 'max') {
+
+      if (mode === 'max') {
         let maxVal = 0
-        matrix.forEach((row) =>
+        matrix.forEach((row) => {
           row.forEach((val) => {
-            if (val < INF && val > maxVal) maxVal = val
-          }),
-        )
-        for (let i = 0; i < matrix.length; i++) {
-          for (let j = 0; j < matrix[i].length; j++) {
-            if (matrix[i][j] < INF) {
-              matrix[i][j] = maxVal - matrix[i][j]
+            if (val < INF && val > maxVal) {
+              maxVal = val
             }
-          }
-        }
+          })
+        })
+        const transformedMatrix = matrix.map((row) =>
+          row.map((val) => (val < INF ? maxVal - val : val)),
+        )
+        return { matrix: transformedMatrix, maxVal }
+      } else {
+        return { matrix }
       }
-      this.assignmentMatrix = matrix
+    },
+
+    async openAssignmentModal() {
+      if (!this.detectBipartiteGroups()) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'El grafo no es bipartito. No se puede calcular la asignación.',
+        })
+        return
+      }
+
+      //  min results
+      const minMatrixResult = this.buildAssignmentMatrix('min')
+      const minMatrix = minMatrixResult.matrix
+      const minResult = this.hungarianAlgorithm(minMatrix)
+      const minOptimalAssignment = minResult.assignment.map((j, i) => ({
+        nodeA: this.groupA[i],
+        nodeB: this.groupB[j],
+        cost: minMatrix[i][j],
+        i, //  row index
+        j, //  column index
+      }))
+
+      // max results
+      const maxMatrixResult = this.buildAssignmentMatrix('max')
+      const maxMatrix = maxMatrixResult.matrix
+      const maxVal = maxMatrixResult.maxVal
+      const maxResult = this.hungarianAlgorithm(maxMatrix)
+      const maxOptimalAssignment = maxResult.assignment.map((j, i) => ({
+        nodeA: this.groupA[i],
+        nodeB: this.groupB[j],
+        cost: maxVal - maxMatrix[i][j],
+        i, //  row index
+        j, //  column index
+      }))
+
+      // almacenar results
+      this.assignmentResults = {
+        min: {
+          matrix: minMatrix,
+          totalCost: minResult.cost,
+          optimalAssignment: minOptimalAssignment,
+        },
+        max: {
+          matrix: maxMatrix,
+          maxVal: maxVal,
+          totalCost: maxOptimalAssignment.reduce((sum, pair) => sum + pair.cost, 0),
+          optimalAssignment: maxOptimalAssignment,
+        },
+      }
+
+      this.activeAssignmentTab = 'min'
+      this.showAssignmentModal = true
+    },
+
+    isOptimalAssignment(i, j, mode) {
+      return this.assignmentResults[mode].optimalAssignment.some(
+        (pair) => pair.i === i && pair.j === j,
+      )
     },
 
     // Implementación simple del Algoritmo Húngaro
@@ -1348,7 +1455,7 @@ export default {
   display: flex;
   width: 95vw;
   height: 95vh;
-  background: #555B6E;
+  background: #555b6e;
   position: absolute;
   top: 59%;
   left: 50%;
@@ -1358,7 +1465,7 @@ export default {
 
 .content {
   flex-grow: 1;
-  background: #FAF9F9;
+  background: #faf9f9;
   margin: 20px;
   padding: 20px;
   margin-bottom: 100px;
@@ -1385,7 +1492,7 @@ export default {
 
 .bottom-bar {
   height: 50px;
-  background: #89B0AE;
+  background: #89b0ae;
   position: absolute;
   bottom: 20px;
   left: 57%;
@@ -1401,7 +1508,7 @@ export default {
 .menu-button {
   width: 40px;
   height: 40px;
-  background: #BEE3DB;
+  background: #bee3db;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -1616,7 +1723,7 @@ export default {
 .menu-button.export-button {
   width: 90px;
   height: 40px;
-  background: #FFD6BA;
+  background: #ffd6ba;
   color: #555b6e;
   border: none;
   border-radius: 5px;
@@ -1653,7 +1760,7 @@ export default {
 .sidebar {
   width: 150px;
   height: 60%;
-  background: #89B0AE;
+  background: #89b0ae;
   margin: 20px;
   margin-top: 70px;
   border-radius: 10px;
@@ -1671,7 +1778,7 @@ export default {
   height: 2cm;
   border: none;
   border-radius: 10px;
-  background-color: #BEE3DB;
+  background-color: #bee3db;
   color: #555b6e;
   font-size: 12px;
   cursor: pointer;
@@ -1763,6 +1870,32 @@ export default {
   list-style: none;
   padding: 0;
 }
+
+.modal-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.modal-tabs button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background: #bee3db;
+  color: #555b6e;
+  transition: background 0.3s;
+}
+
+.modal-tabs button.active {
+  background: #4a78a2;
+  color: white;
+}
+
+.modal-tabs button:hover {
+  background: #92cdc0;
+}
+
 .close-button {
   background: #d776e4;
   color: #fff;
@@ -1801,5 +1934,12 @@ export default {
   color: var(--text-color);
   text-decoration: none;
   font-weight: bold;
+}
+
+.highlight-cell {
+  background-color: #c7efcf;
+  font-weight: bold;
+  color: #000;
+  border: 2px solid #4a78a2;
 }
 </style>
