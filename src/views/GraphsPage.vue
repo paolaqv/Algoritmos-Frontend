@@ -1360,11 +1360,10 @@ export default {
       )
     },
 
-    // Implementación simple del Algoritmo Húngaro
+    // Implementación del Algoritmo Húngaro
     hungarianAlgorithm(matrix) {
-      // Esta implementación es para fines demostrativos.
-      // Se espera que matrix sea un arreglo 2D.
-      // Retorna un objeto { cost, assignment }.
+      // Se espera que matrix sea un arreglo 2D
+      // Retorna un objeto { cost, assignment }
       const n = matrix.length
       const m = matrix[0].length
       // Para simplicidad, asumimos n === m, de lo contrario se debe ajustar.
