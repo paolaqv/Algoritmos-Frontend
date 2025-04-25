@@ -74,74 +74,13 @@
           </text>
         </g>
       </svg>
-
-      <!-- Modal para mostrar resultados de asignación -->
-      <div v-if="showAssignmentModal" class="modal-overlay" @click.self="closeAssignmentModal">
-        <div class="modal-content">
-          <div class="modal-tabs">
-            <button
-              @click="activeAssignmentTab = 'min'"
-              :class="{ active: activeAssignmentTab === 'min' }"
-            >
-              Minimización
-            </button>
-            <button
-              @click="activeAssignmentTab = 'max'"
-              :class="{ active: activeAssignmentTab === 'max' }"
-            >
-              Maximización
-            </button>
-          </div>
-          <h2>
-            Resultado de la Asignación ({{
-              activeAssignmentTab === 'min' ? 'Minimizar' : 'Maximizar'
-            }})
-          </h2>
-          <div class="matrix-container">
-            <table>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th v-for="(nodeB, index) in groupB" :key="index">{{ nodeB.name }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(nodeA, i) in groupA" :key="i">
-                  <th>{{ nodeA.name }}</th>
-                  <td
-                    v-for="(nodeB, j) in groupB"
-                    :key="j"
-                    :class="{
-                      'highlight-cell': isOptimalAssignment(i, j, activeAssignmentTab),
-                    }"
-                  >
-                    {{
-                      activeAssignmentTab === 'min'
-                        ? assignmentResults.min.matrix[i][j]
-                        : assignmentResults.max.maxVal - assignmentResults.max.matrix[i][j]
-                    }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="assignment-result">
-            <p>
-              <strong>Costo Total:</strong> {{ assignmentResults[activeAssignmentTab].totalCost }}
-            </p>
-            <p><strong>Asignaciones Óptimas:</strong></p>
-            <ul>
-              <li
-                v-for="(pair, index) in assignmentResults[activeAssignmentTab].optimalAssignment"
-                :key="index"
-              >
-                {{ pair.nodeA.name }} → {{ pair.nodeB.name }} (Costo: {{ pair.cost }})
-              </li>
-            </ul>
-          </div>
-          <button class="close-button" @click="closeAssignmentModal">Cerrar</button>
-        </div>
-      </div>
+      <!--AssignmentPopup-->
+      <AssignmentPopup
+        v-if="showAssignmentModal"
+        :nodes="nodes"
+        :edges="edges"
+        @close="showAssignmentModal = false"
+      />
       <!-- Popup para matriz de adyacencia -->
       <div v-if="showMatrixPopup" class="matrix-popup" :style="matrixPopupStyle">
         <div class="matrix-popup-header" @mousedown="onPopupHeaderMouseDown">
@@ -359,6 +298,7 @@ import Swal from 'sweetalert2'
 import JohnsonPopup from '../components/JohnsonPopup.vue'
 import NorthWestPopup from '../components/NorthWestPopup.vue'
 import HelpNorthWest from '../components/HelpNorthWest.vue'
+import AssignmentPopup from '../components/AssignmentPopup.vue'
 
 export default {
   components: {
@@ -366,6 +306,8 @@ export default {
     HelpView,
     NorthWestPopup,
     HelpNorthWest,
+    AssignmentPopup,
+
   },
 
   name: 'GraphsPage',
@@ -1095,46 +1037,6 @@ export default {
         return { labelX, labelY }
       }
     },
-    // handleFileImport(event) {
-
-    //   const file = event.target.files[0]
-    //   if (!file) return
-
-    //   const reader = new FileReader()
-    //   reader.onload = (e) => {
-    //     try {
-    //       const data = JSON.parse(e.target.result)
-    //       if (data.nodes && data.edges) {
-    //         this.nodes = data.nodes
-    //         // creacion de mapa para buscar nodos por su id
-    //         const nodeMap = {}
-    //         this.nodes.forEach((node) => {
-    //           nodeMap[node.id] = node
-    //         })
-
-    //         // reasocia los nodos en cada arista y recalcula sus posiciones
-    //         this.edges = data.edges.map((edge) => {
-    //           return {
-    //             ...edge,
-    //             node1: nodeMap[edge.node1.id],
-    //             node2: nodeMap[edge.node2.id],
-    //             calculated: this.calculateEdgePosition(
-    //               nodeMap[edge.node1.id],
-    //               nodeMap[edge.node2.id],
-    //             ),
-    //           }
-    //         })
-    //         console.log('Grafo importado exitosamente')
-    //       } else {
-    //         console.error('El archivo JSON no tiene el formato correcto.')
-    //       }
-    //     } catch (error) {
-    //       console.error('Error al importar el archivo JSON:', error)
-    //     }
-    //   }
-    //   reader.readAsText(file)
-    // },
-
     // Botón para resolver la asignación; mode = 'min' o 'max'
     handleFileImport(event) {
       const file = event.target.files[0]
@@ -1196,234 +1098,9 @@ export default {
       }
       reader.readAsText(file)
     },
-    solveAssignment(mode) {
-      this.assignmentMode = mode
-      // Paso 1: Detectar grupos automáticamente
-      if (!this.detectBipartiteGroups()) {
-        alert('El grafo no es bipartito. No se puede calcular la asignación automáticamente.')
-        return
-      }
-      // Paso 2: Construir la matriz de asignación
-      this.buildAssignmentMatrix()
-      // Paso 3: Resolver el problema usando el algoritmo húngaro
-      const result = this.hungarianAlgorithm(this.assignmentMatrix)
-      // Result es un objeto { cost, assignment } donde assignment es un arreglo de índices
-      this.totalCost = result.cost
-      this.optimalAssignment = []
-      this.highlightedEdges = []
-      result.assignment.forEach((j, i) => {
-        const nodeA = this.groupA[i]
-        const nodeB = this.groupB[j]
-        // El costo original se obtiene de la matriz de asignación original
-        const cost = this.assignmentMatrix[i][j]
-        this.optimalAssignment.push({ nodeA, nodeB, cost })
-        // Resaltar la arista entre estos nodos, si existe
-        const edge = this.edges.find(
-          (e) =>
-            (e.node1.name === nodeA.name && e.node2.name === nodeB.name) ||
-            (e.node1.name === nodeB.name && e.node2.name === nodeA.name),
-        )
-        if (edge) {
-          this.highlightedEdges.push(edge)
-        }
-      })
-      // Mostrar el modal con los resultados
+    openAssignmentModal() {
       this.showAssignmentModal = true
     },
-
-    // Método para detectar los grupos (bipartición) usando BFS
-    detectBipartiteGroups() {
-      // Inicializar grupos
-      const color = {} // key: node.name, value: 0 o 1
-      const queue = []
-      // Tomamos el primer nodo y lo asignamos a 0 (Grupo A)
-      if (this.nodes.length === 0) return false
-      color[this.nodes[0].name] = 0
-      queue.push(this.nodes[0])
-      while (queue.length) {
-        const node = queue.shift()
-        // Buscar vecinos: consideramos los nodos conectados por aristas
-        const neighbors = this.edges.reduce((acc, edge) => {
-          if (edge.node1.name === node.name) acc.push(edge.node2)
-          else if (edge.node2.name === node.name) acc.push(edge.node1)
-          return acc
-        }, [])
-        neighbors.forEach((neighbor) => {
-          if (color[neighbor.name] === undefined) {
-            color[neighbor.name] = 1 - color[node.name]
-            queue.push(neighbor)
-          } else if (color[neighbor.name] === color[node.name]) {
-            // El grafo no es bipartito
-            return false
-          }
-        })
-      }
-      // Separar nodos en dos grupos
-      this.groupA = this.nodes.filter((node) => color[node.name] === 0)
-      this.groupB = this.nodes.filter((node) => color[node.name] === 1)
-      // Verificar que ambos grupos tengan al menos un nodo
-      return this.groupA.length > 0 && this.groupB.length > 0
-    },
-
-    // Construir la matriz de asignación a partir de groupA y groupB
-    buildAssignmentMatrix(mode) {
-      const INF = 1e9
-      const matrix = []
-      for (let i = 0; i < this.groupA.length; i++) {
-        const row = []
-        for (let j = 0; j < this.groupB.length; j++) {
-          const edge = this.edges.find(
-            (e) =>
-              (e.node1.name === this.groupA[i].name && e.node2.name === this.groupB[j].name) ||
-              (e.node1.name === this.groupB[j].name && e.node2.name === this.groupA[i].name),
-          )
-          row.push(edge ? Number(edge.weight) : INF)
-        }
-        matrix.push(row)
-      }
-
-      if (mode === 'max') {
-        let maxVal = 0
-        matrix.forEach((row) => {
-          row.forEach((val) => {
-            if (val < INF && val > maxVal) {
-              maxVal = val
-            }
-          })
-        })
-        const transformedMatrix = matrix.map((row) =>
-          row.map((val) => (val < INF ? maxVal - val : val)),
-        )
-        return { matrix: transformedMatrix, maxVal }
-      } else {
-        return { matrix }
-      }
-    },
-
-    async openAssignmentModal() {
-      if (!this.detectBipartiteGroups()) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'El grafo no es bipartito. No se puede calcular la asignación.',
-        })
-        return
-      }
-
-      //  min results
-      const minMatrixResult = this.buildAssignmentMatrix('min')
-      const minMatrix = minMatrixResult.matrix
-      const minResult = this.hungarianAlgorithm(minMatrix)
-      const minOptimalAssignment = minResult.assignment.map((j, i) => ({
-        nodeA: this.groupA[i],
-        nodeB: this.groupB[j],
-        cost: minMatrix[i][j],
-        i, //  row index
-        j, //  column index
-      }))
-
-      // max results
-      const maxMatrixResult = this.buildAssignmentMatrix('max')
-      const maxMatrix = maxMatrixResult.matrix
-      const maxVal = maxMatrixResult.maxVal
-      const maxResult = this.hungarianAlgorithm(maxMatrix)
-      const maxOptimalAssignment = maxResult.assignment.map((j, i) => ({
-        nodeA: this.groupA[i],
-        nodeB: this.groupB[j],
-        cost: maxVal - maxMatrix[i][j],
-        i, //  row index
-        j, //  column index
-      }))
-
-      // almacenar results
-      this.assignmentResults = {
-        min: {
-          matrix: minMatrix,
-          totalCost: minResult.cost,
-          optimalAssignment: minOptimalAssignment,
-        },
-        max: {
-          matrix: maxMatrix,
-          maxVal: maxVal,
-          totalCost: maxOptimalAssignment.reduce((sum, pair) => sum + pair.cost, 0),
-          optimalAssignment: maxOptimalAssignment,
-        },
-      }
-
-      this.activeAssignmentTab = 'min'
-      this.showAssignmentModal = true
-    },
-
-    isOptimalAssignment(i, j, mode) {
-      return this.assignmentResults[mode].optimalAssignment.some(
-        (pair) => pair.i === i && pair.j === j,
-      )
-    },
-
-    // Implementación simple del Algoritmo Húngaro
-    hungarianAlgorithm(matrix) {
-      // Esta implementación es para fines demostrativos.
-      // Se espera que matrix sea un arreglo 2D.
-      // Retorna un objeto { cost, assignment }.
-      const n = matrix.length
-      const m = matrix[0].length
-      // Para simplicidad, asumimos n === m, de lo contrario se debe ajustar.
-      const u = Array(n + 1).fill(0)
-      const v = Array(m + 1).fill(0)
-      const p = Array(m + 1).fill(0)
-      const way = Array(m + 1).fill(0)
-
-      for (let i = 1; i <= n; i++) {
-        p[0] = i
-        let minv = Array(m + 1).fill(1e9)
-        const used = Array(m + 1).fill(false)
-        let j0 = 0
-        do {
-          used[j0] = true
-          const i0 = p[j0]
-          let delta = 1e9
-          let j1 = 0
-          for (let j = 1; j <= m; j++) {
-            if (!used[j]) {
-              const cur = matrix[i0 - 1][j - 1] - u[i0] - v[j]
-              if (cur < minv[j]) {
-                minv[j] = cur
-                way[j] = j0
-              }
-              if (minv[j] < delta) {
-                delta = minv[j]
-                j1 = j
-              }
-            }
-          }
-          for (let j = 0; j <= m; j++) {
-            if (used[j]) {
-              u[p[j]] += delta
-              v[j] -= delta
-            } else {
-              minv[j] -= delta
-            }
-          }
-          j0 = j1
-        } while (p[j0] !== 0)
-        do {
-          const j1 = way[j0]
-          p[j0] = p[j1]
-          j0 = j1
-        } while (j0)
-      }
-      const assignment = Array(n).fill(0)
-      for (let j = 1; j <= m; j++) {
-        assignment[p[j] - 1] = j - 1
-      }
-      const cost = -v[0]
-      return { cost, assignment }
-    },
-
-    closeAssignmentModal() {
-      this.showAssignmentModal = false
-    },
-
     exportData() {
       const jsonData = JSON.stringify({ nodes: this.nodes, edges: this.edges }, null, 2)
       const blob = new Blob([jsonData], { type: 'application/json' })
@@ -1832,83 +1509,6 @@ export default {
   cursor: nwse-resize;
   align-self: flex-end;
 }
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 600px;
-  width: 90%;
-}
-.matrix-container {
-  overflow-x: auto;
-  margin-bottom: 10px;
-}
-.matrix-container table {
-  border-collapse: collapse;
-  width: 100%;
-}
-.matrix-container th,
-.matrix-container td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-}
-.assignment-result ul {
-  list-style: none;
-  padding: 0;
-}
-
-.modal-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.modal-tabs button {
-  padding: 8px 15px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  background: #bee3db;
-  color: #555b6e;
-  transition: background 0.3s;
-}
-
-.modal-tabs button.active {
-  background: #4a78a2;
-  color: white;
-}
-
-.modal-tabs button:hover {
-  background: #92cdc0;
-}
-
-.close-button {
-  background: #d776e4;
-  color: #fff;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-.close-button:hover {
-  background: #c06ab8;
-}
-
 /* NAVBAR */
 .navbar {
   display: flex;
