@@ -1189,7 +1189,7 @@ export default {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition:  0.3s;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1236,7 +1236,7 @@ export default {
   cursor: pointer;
   border: none;
   border-radius: 5px;
-  transition: background 0.3s;
+  transition:  0.3s;
 }
 
 .cancel-button {
@@ -1405,9 +1405,7 @@ export default {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition:
-    background 0.3s,
-    transform 0.2s;
+  transform: 0.2s;
   font-size: 14px;
   font-weight: bold;
 }
