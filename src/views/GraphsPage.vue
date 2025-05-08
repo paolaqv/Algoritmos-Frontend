@@ -23,6 +23,10 @@
         <button id="btn-asignacion" class="sidebar-button" @click="openAssignmentModal">
           Asignacion
         </button>
+        <button id="btn-arbol-binario" class="sidebar-button" @click="openBinaryTreePopup">
+  Árbol Binario
+</button>
+
       </div>
     </aside>
     <main ref="contentArea" class="content" @click="openNodePopup">
@@ -144,6 +148,10 @@
           }
         "
       />
+      <BinaryTreePopup
+  v-if="showBinaryTreePopup"
+  @close="showBinaryTreePopup = false"
+/>
     </main>
 
     <footer class="bottom-bar">
@@ -299,6 +307,7 @@ import JohnsonPopup from '../components/JohnsonPopup.vue'
 import NorthWestPopup from '../components/NorthWestPopup.vue'
 import HelpNorthWest from '../components/HelpNorthWest.vue'
 import AssignmentPopup from '../components/AssignmentPopup.vue'
+import BinaryTreePopup from '../components/BinaryTreePopup.vue'
 
 export default {
   components: {
@@ -307,6 +316,7 @@ export default {
     NorthWestPopup,
     HelpNorthWest,
     AssignmentPopup,
+    BinaryTreePopup,
 
   },
 
@@ -384,6 +394,8 @@ export default {
       //NorthWest
       showNorthWestPopup: false,
       showNorthWestHelp: false,
+      //
+      showBinaryTreePopup: false,
     }
   },
 
@@ -407,6 +419,11 @@ export default {
     },
   },
   methods: {
+    openBinaryTreePopup() {
+  console.log('Botón Árbol Binario presionado')
+  this.showBinaryTreePopup = true
+},
+
     toggleHelp() {
       this.isHelpActive = !this.isHelpActive // Cambia el estado de isHelpActive
     },
