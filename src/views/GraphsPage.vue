@@ -24,8 +24,11 @@
           Asignacion
         </button>
         <button id="btn-arbol-binario" class="sidebar-button" @click="openBinaryTreePopup">
-  Árbol Binario
-</button>
+          Árbol Binario
+        </button>
+        <button class="sidebar-button" @click="openKruskalPopup">
+         Kruskal
+        </button>
 
       </div>
     </aside>
@@ -149,9 +152,17 @@
         "
       />
       <BinaryTreePopup
-  v-if="showBinaryTreePopup"
-  @close="showBinaryTreePopup = false"
+        v-if="showBinaryTreePopup"
+        @close="showBinaryTreePopup = false"
+      />
+<KruskalPopup
+  v-model="showKruskalPopup"
+  :nodes="nodes"
+  :edges="edges"
+  :layouts="layouts"
+  :configs="configs"
 />
+
     </main>
 
     <footer class="bottom-bar">
@@ -308,6 +319,7 @@ import NorthWestPopup from '../components/NorthWestPopup.vue'
 import HelpNorthWest from '../components/HelpNorthWest.vue'
 import AssignmentPopup from '../components/AssignmentPopup.vue'
 import BinaryTreePopup from '../components/BinaryTreePopup.vue'
+import KruskalPopup from '../components/KruskalPopup.vue'
 
 export default {
   components: {
@@ -317,6 +329,7 @@ export default {
     HelpNorthWest,
     AssignmentPopup,
     BinaryTreePopup,
+    KruskalPopup,
 
   },
 
@@ -396,6 +409,8 @@ export default {
       showNorthWestHelp: false,
       //
       showBinaryTreePopup: false,
+      //
+      showKruskalPopup: false,
     }
   },
 
@@ -419,6 +434,13 @@ export default {
     },
   },
   methods: {
+
+    openKruskalPopup() {
+       console.log('Botón Kruskal presionado')
+       this.showKruskalPopup = true
+
+
+    },
     openBinaryTreePopup() {
   console.log('Botón Árbol Binario presionado')
   this.showBinaryTreePopup = true
