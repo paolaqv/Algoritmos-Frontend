@@ -131,8 +131,8 @@
         </div>
       </div>
     </div>
-    <button class="fab" @click="onFabClick()">?</button>
-
+   <!-- <button class="fab" @click="onFabClick()">?</button>-->
+    <HelpBinaryTreePopup/>
   </div>
 </template>
 
@@ -141,6 +141,7 @@ import { ref, reactive } from 'vue';
 import type { VNetworkGraphInstance } from 'v-network-graph';
 import { defineConfigs } from 'v-network-graph';
 import { useTreeStore } from '@/stores/treeStore';
+import HelpBinaryTreePopup from './HelpBinaryTreePopup.vue';
 
 const treeStore = useTreeStore();
 const graph = ref<VNetworkGraphInstance | null>(null);
