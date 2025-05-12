@@ -42,14 +42,16 @@
             </span>
           </div>
         </div>
+        <HelpKruskalPopup />
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import HelpKruskalPopup from './HelpKruskalPopup.vue'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -154,12 +156,12 @@ function close() {
 
 <style scoped>
 .kruskal-popup-overlay {
-  position: fixed;
+  position: relative;
+  width: fit-content;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;

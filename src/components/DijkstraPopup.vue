@@ -31,11 +31,11 @@
           </div>
           <div class="controls-section">
             <div class="mode-selector">
-              <button class="find-path-btn" @click="runDijkstra">
+              <button class="find-path-btn" @click="runDijkstra('max')">
                 <i class="fas fa-arrow-up me-2"></i>
                 Maximizar
               </button>
-              <button class="find-path-btn" @click="runDijkstra">
+              <button class="find-path-btn" @click="runDijkstra('min')">
                 <i class="fas fa-arrow-down me-2"></i>
                 Minimizar
               </button>
@@ -60,12 +60,13 @@
         </div>
       </div>
     </div>
+    <HelpDijkstraPopup/>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
-
+import HelpDijkstraPopup from './HelpDijkstraPopup.vue'
 const props = defineProps({
   modelValue: Boolean,
   nodes: Array,
@@ -79,12 +80,15 @@ const visible = computed({
   set: (v) => emit('update:modelValue', v),
 })
 
+const pathFound = ref(false)
+const pathLength = ref(0)
+
 const startNode = ref(null)
 const endNode = ref(null)
 const pathEdges = ref(new Set())
 
 const renderNodes = computed(() =>
-  props.nodes.map((n) => ({
+  props.nodes?.map((n) => ({
     id: n.name ?? n.id,
     x: n.x,
     y: n.y,
@@ -152,10 +156,25 @@ const renderEdges = computed(() =>
   }),
 )
 
-function runDijkstra() {
-  // TODO: Connect to backend Dijkstra implementation
-  // For now, mock path highlighting
-  pathEdges.value = new Set(['e1', 'e3']) // Example edges
+function showHelp() {
+  alert(
+    'Selecciona un nodo inicial y uno final para calcular el camino más corto con Dijkstra. Usa "maximizar" o "minimizar" según el criterio de optimización deseado.',
+  )
+}
+
+function runDijkstra(mode: 'max' | 'min') {
+  // Aquí conectas con tu backend o mockeas diferente
+  if (!startNode.value || !endNode.value) {
+    alert('Selecciona nodo inicial y final')
+    return
+  }
+
+  // Simulación por ahora
+  if (mode === 'max') {
+    pathEdges.value = new Set(['e2', 'e4']) // Ejemplo
+  } else {
+    pathEdges.value = new Set(['e1', 'e3']) // Ejemplo
+  }
 }
 
 function close() {
@@ -165,12 +184,12 @@ function close() {
 
 <style scoped>
 .dijkstra-popup-overlay {
-  position: fixed;
+  position: relative;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  width: fit-content;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -184,6 +203,7 @@ function close() {
   width: 800px;
   max-width: 90vw;
   overflow: hidden;
+  position: relative;
 }
 
 .popup-header {
@@ -275,6 +295,43 @@ label {
   stroke: #48bb78 !important;
   stroke-width: 3 !important;
   animation: pulse 1.5s infinite;
+}
+
+.help-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fab {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: #89B0AE;
+  border: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  color: #FAF9F9;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.fab:hover {
+  transform: translateY(-3px);
 }
 
 @keyframes pulse {
