@@ -47,8 +47,7 @@
         <div class="bars-container">
           <div v-for="(value, index) in barValues" :key="index" class="bar-wrapper">
             <!-- Cambiar el color de la barra activa -->
-            <div :class="['bar', { active: index === currentIndex }]" :style="{ height: (value / maxValueComputed) * 100 + '%', backgroundColor: index === currentIndex ? '#00BFFF' : '#8A2BE2' }"></div>
-            <div class="x-label">{{ index + 1 }}</div>
+            <div :class="['bar', { active: activeIndices.includes(index) }]" :style="{ height: (value / maxValueComputed) * 100 + '%'}"></div>
           </div>
         </div>
       </div>
@@ -86,68 +85,53 @@
       <h3>Lista Ordenada:</h3>
       <p>{{ sortedList }}</p>
     </div>
+    <HelpSortingPopup />
 </template>
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue';
+import { ref, computed } from 'vue';
+import HelpSortingPopup from '@/components/HelpSortingPopup.vue'; // ✅ Importa aquí
 
-  // Variables reactivas
-  const barValues = ref<number[]>([]);
-  const currentIndex = ref<number | null>(null); // El índice de la barra que se está moviendo
-
-  // Modal states
-  const showAddListModal = ref(false);
-  const showGenerateRandomModal = ref(false);
-
-  // Datos del modal
-  const numElements = ref<number | null>(null);
-  const randomCount = ref<number | null>(null);
-  const minValue = ref<number | null>(null);
-  const maxValueInput = ref<number | null>(null); // Renombrado para evitar conflictos
-
-  // Computado para calcular el valor máximo de barValues
-  const maxValueComputed = computed(() => Math.max(...barValues.value));
-
-    // Variables para las listas
-  const originalList = ref<number[]>([]);
-  const sortedList = ref<number[]>([]);
-// Definir gapValue como una variable reactiva
+const barValues = ref<number[]>([]);
+const currentIndex = ref<number | null>(null); 
+const showAddListModal = ref(false);
+const showGenerateRandomModal = ref(false);
+const numElements = ref<number | null>(null);
+const randomCount = ref<number | null>(null);
+const minValue = ref<number | null>(null);
+const maxValueInput = ref<number | null>(null);
+const maxValueComputed = computed(() => Math.max(...barValues.value));
+const originalList = ref<number[]>([]);
+const sortedList = ref<number[]>([]);
 const gapValue = ref<number | null>(null);
+const activeIndices = ref<number[]>([]);
 
-
-  // Generación del rango dinámico para el eje Y
-  const yAxisRange = computed(() => {
-  const max = maxValueComputed.value; // Usamos el valor calculado
+// Computed
+const yAxisRange = computed(() => {
+  const max = maxValueComputed.value;
   if (max !== null) {
     const range = [];
-    // Añadir valores de Y en orden descendente
     for (let i = max; i >= 0; i -= Math.ceil(max / 5)) {
       range.push(i);
     }
     return range;
   }
-  return []; // Si max es null, no se genera el rango
+  return [];
 });
 
-
-  function cleanList() {
-    barValues.value = [];
-    currentIndex.value = null;
-    originalList.value = [];
-    sortedList.value = [];
-  }
-  // Abrir el modal para agregar lista
-  function openAddListModal() {
-    showAddListModal.value = true;
-  }
-
-  // Cerrar el modal para agregar lista
-  function closeAddListModal() {
-    showAddListModal.value = false;
-  }
-
-  // Confirmar la adición de lista
- // Confirmar la adición de lista
+// Funciones
+function cleanList() {
+  barValues.value = [];
+  currentIndex.value = null;
+  originalList.value = [];
+  sortedList.value = [];
+}
+function openAddListModal() {
+  showAddListModal.value = true;
+}
+function closeAddListModal() {
+  showAddListModal.value = false;
+}
 function confirmAddList() {
   if (numElements.value && numElements.value > 0) {
     const newList: number[] = [];
@@ -160,169 +144,131 @@ function confirmAddList() {
         return;
       }
     }
-
-    // Actualizamos 'barValues' para que refleje los nuevos valores de la lista
     barValues.value = newList;
-    
-    // También actualizamos 'originalList' para mostrarla en la sección de "Lista Original"
-    originalList.value = [...newList]; // Guardamos la lista original
-
+    originalList.value = [...newList];
     closeAddListModal();
   } else {
     alert("Por favor ingresa un número válido de elementos.");
   }
 }
-
-
-  // Abrir el modal para generar números aleatorios
-  function openGenerateRandomModal() {
-    showGenerateRandomModal.value = true;
+function openGenerateRandomModal() {
+  showGenerateRandomModal.value = true;
+}
+function closeGenerateRandomModal() {
+  showGenerateRandomModal.value = false;
+}
+function confirmGenerateRandom() {
+  if (
+    randomCount.value &&
+    minValue.value !== null &&
+    maxValueInput.value !== null &&
+    randomCount.value > 0 &&
+    minValue.value < maxValueInput.value
+  ) {
+    const generatedNumbers: number[] = [];
+    for (let i = 0; i < randomCount.value; i++) {
+      generatedNumbers.push(
+        Math.floor(Math.random() * (maxValueInput.value - minValue.value + 1)) + minValue.value
+      );
+    }
+    barValues.value = generatedNumbers;
+    originalList.value = [...generatedNumbers];
+    sortedList.value = [];
+    closeGenerateRandomModal();
+  } else {
+    alert("Por favor asegúrate de que todos los campos sean válidos.");
   }
+}
 
-  // Cerrar el modal para generar números aleatorios
-  function closeGenerateRandomModal() {
-    showGenerateRandomModal.value = false;
-  }
+async function startSelectionSort() {
+  let arr = [...barValues.value];
+  let n = arr.length;
 
-  // Confirmar la generación de números aleatorios
-  function confirmGenerateRandom() {
-    if (
-      randomCount.value &&
-      minValue.value !== null &&
-      maxValueInput.value !== null &&
-      randomCount.value > 0 &&
-      minValue.value < maxValueInput.value
-    ) {
-      const generatedNumbers: number[] = [];
-      for (let i = 0; i < randomCount.value; i++) {
-        generatedNumbers.push(
-          Math.floor(Math.random() * (maxValueInput.value - minValue.value + 1)) + minValue.value
-        );
+  for (let i = 0; i < n - 1; i++) {
+    let minIndex = i;
+    currentIndex.value = i;
+    await pause(100);
+
+    for (let j = i + 1; j < n; j++) {
+      if (arr[j] < arr[minIndex]) {
+        minIndex = j;
       }
-      barValues.value = generatedNumbers;
-      originalList.value = [...generatedNumbers]; // Guardamos la lista original
-      sortedList.value = []; // Limpiamos la lista ordenada
-      closeGenerateRandomModal();
-    } else {
-      alert("Por favor asegúrate de que todos los campos sean válidos.");
+      currentIndex.value = j;
+      await pause(100);
+    }
+    if (minIndex !== i) {
+      let temp = arr[i];
+      arr[i] = arr[minIndex];
+      arr[minIndex] = temp;
+      barValues.value = [...arr];
+      await pause(100);
     }
   }
+  currentIndex.value = null;
+  sortedList.value = [...arr];
+}
 
-  // Función para hacer el Selection Sort con animación
-  async function startSelectionSort() {
-    let arr = [...barValues.value]; // Creamos una copia del arreglo para manipularlo
-    let n = arr.length;
-
-    // Iteramos a través de las barras para ordenar
-    for (let i = 0; i < n - 1; i++) {
-      let minIndex = i;
-
-      // Resaltamos la barra en el proceso
-      currentIndex.value = i;
-      await pause(100); // Esperamos para mostrar el estado actual
-
-      for (let j = i + 1; j < n; j++) {
-        if (arr[j] < arr[minIndex]) {
-          minIndex = j;
-        }
-
-        // Resaltamos las barras que se están comparando
-        currentIndex.value = j;
-        await pause(100); // Esperamos para mostrar la comparación
-      }
-
-      // Si encontramos un nuevo mínimo, intercambiamos las barras
-      if (minIndex !== i) {
-        // Intercambiamos los valores
-        let temp = arr[i];
-        arr[i] = arr[minIndex];
-        arr[minIndex] = temp;
-
-        // Actualizamos el arreglo de barras para reflejar el cambio
-        barValues.value = [...arr];
-
-        // Animación de la barra cambiando de lugar
-        await pause(100); // Esperamos para mostrar el intercambio visual
-      }
-    }
-    currentIndex.value = null; // Resaltamos la barra al final
-    sortedList.value = [...arr]; // Guardamos la lista ordenada
-
-  }
-
-  // Función para hacer el Insertion Sort con animación
 async function startInsertionSort() {
-  let arr = [...barValues.value]; // Creamos una copia del arreglo para manipularlo
+  let arr = [...barValues.value];
   let n = arr.length;
 
   for (let i = 1; i < n; i++) {
     let key = arr[i];
     let j = i - 1;
 
-    // Resaltamos la barra en el proceso
-    currentIndex.value = i;
-    await pause(100); // Esperamos para mostrar el estado actual
+    activeIndices.value = [i];
+    await pause(150);
 
-    // Mueve los elementos de arr[0..i-1] que son mayores que key, a una posición adelante
     while (j >= 0 && arr[j] > key) {
       arr[j + 1] = arr[j];
       j = j - 1;
-
-      // Resaltamos las barras que se están comparando
-      currentIndex.value = j;
-      await pause(100); // Esperamos para mostrar la comparación
+      activeIndices.value = [j + 1, j + 2];
+      barValues.value = [...arr];
+      await pause(150);
     }
     arr[j + 1] = key;
-
-    // Actualizamos el arreglo de barras para reflejar el cambio
     barValues.value = [...arr];
-    await pause(100); // Esperamos para mostrar el intercambio visual
+    await pause(150);
   }
-
-  currentIndex.value = null; // Resaltamos la barra al final
-  sortedList.value = [...arr]; // Guardamos la lista ordenada
+  activeIndices.value = [];
+  sortedList.value = [...arr];
 }
 
-// Función para hacer el Shell Sort con animación
 async function startShellSort() {
-    if (gapValue.value === null || gapValue.value <= 0) {
-      alert("Por favor ingresa un valor válido para el gap.");
-      return;
-    }
-
-    let arr = [...barValues.value];
-    let n = arr.length;
-    let gap = gapValue.value; // Usamos el valor de gap ingresado por el usuario
-
-    while (gap >= 1) {
-      for (let i = gap; i < n; i++) {
-        let temp = arr[i];
-        let j = i;
-
-        while (j >= gap && arr[j - gap] > temp) {
-          arr[j] = arr[j - gap];
-          j -= gap;
-
-          currentIndex.value = j;
-          await pause(100);
-        }
-        arr[j] = temp;
-      }
-      gap = Math.floor(gap / 2); // Reducimos el gap
-    }
-
-    barValues.value = [...arr];
-    sortedList.value = [...arr];
+  if (gapValue.value === null || gapValue.value <= 0) {
+    alert("Por favor ingresa un valor válido para el gap.");
+    return;
   }
 
+  let arr = [...barValues.value];
+  let n = arr.length;
+  let gap = gapValue.value;
 
-// Función para fusionar dos arreglos
+  while (gap >= 1) {
+    for (let i = gap; i < n; i++) {
+      let temp = arr[i];
+      let j = i;
+
+      while (j >= gap && arr[j - gap] > temp) {
+        arr[j] = arr[j - gap];
+        j -= gap;
+        currentIndex.value = j;
+        await pause(100);
+      }
+      arr[j] = temp;
+    }
+    gap = Math.floor(gap / 2);
+  }
+
+  barValues.value = [...arr];
+  sortedList.value = [...arr];
+}
+
 async function merge(left: number[], right: number[]): Promise<number[]> {
   const result: number[] = [];
   let leftIndex = 0;
   let rightIndex = 0;
 
-  // Fusionamos los dos arreglos mientras haya elementos en ambos
   while (leftIndex < left.length && rightIndex < right.length) {
     if (left[leftIndex] < right[rightIndex]) {
       result.push(left[leftIndex]);
@@ -332,70 +278,52 @@ async function merge(left: number[], right: number[]): Promise<number[]> {
       rightIndex++;
     }
 
-    // Resaltamos las barras que se están comparando
-    currentIndex.value = leftIndex + rightIndex;
-    await pause(100); // Esperamos para mostrar la comparación
+    activeIndices.value = [leftIndex, rightIndex];
+    barValues.value = [...originalList.value.slice(0, result.length), ...left.slice(leftIndex), ...right.slice(rightIndex)];
+    await pause(150);
   }
 
-  // Si queda algún elemento en el arreglo izquierdo o derecho, lo agregamos
   return result.concat(left.slice(leftIndex), right.slice(rightIndex));
 }
 
-// Función para iniciar el Merge Sort
 async function startMergeSort() {
-  let arr = [...barValues.value]; // Creamos una copia del arreglo para manipularlo
-
-  // Ejecutamos el Merge Sort y actualizamos la visualización
+  let arr = [...barValues.value];
   const sortedArr = await mergeSort(arr);
-
-  // Actualizamos el arreglo de barras con la lista ordenada
   barValues.value = sortedArr;
-
-  // Actualizamos la lista ordenada para mostrarla debajo del gráfico
   sortedList.value = [...sortedArr];
 }
 
-
-// Función Merge Sort con animación
 async function mergeSort(arr: number[]): Promise<number[]> {
   if (arr.length <= 1) {
     return arr;
   }
-
-  // Dividimos el arreglo en dos mitades
   const middle = Math.floor(arr.length / 2);
   const left = arr.slice(0, middle);
   const right = arr.slice(middle);
-
-  // Realizamos la llamada recursiva para ordenar ambas mitades
   const leftSorted = await mergeSort(left);
   const rightSorted = await mergeSort(right);
-
-  // Fusionamos las dos mitades ordenadas
-  return merge(leftSorted, rightSorted);
+  const merged = await merge(leftSorted, rightSorted);
+  barValues.value = [...merged];
+  return merged;
 }
 
-  // Función de espera para controlar los retrasos en la animación
-  function pause(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+function pause(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-// Función para exportar los datos
+
+
 function exportData() {
-  // Creamos un archivo JSON con los datos de barValues
   const dataStr = JSON.stringify(barValues.value);
   const blob = new Blob([dataStr], { type: 'application/json' });
-
-  // Crear un enlace para descargar el archivo
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'barValues.json'; // Nombre del archivo
+  a.download = 'barValues.json';
   a.click();
-  URL.revokeObjectURL(url); // Revocar el URL después de usarlo
+  URL.revokeObjectURL(url);
 }
 
-// Función para importar los datos
 function importData(event: Event) {
   const fileInput = event.target as HTMLInputElement;
   if (fileInput?.files?.[0]) {
@@ -407,10 +335,9 @@ function importData(event: Event) {
       if (content) {
         try {
           const importedData = JSON.parse(content as string);
-          // Validamos que los datos sean un arreglo de números
           if (Array.isArray(importedData) && importedData.every(item => typeof item === 'number')) {
             barValues.value = importedData;
-            originalList.value = [...importedData]; // Actualizamos también la lista original
+            originalList.value = [...importedData];
             alert('Datos importados correctamente');
           } else {
             alert('El archivo no contiene un formato de lista válido.');
@@ -421,208 +348,245 @@ function importData(event: Event) {
       }
     };
 
-    reader.readAsText(file); // Leemos el archivo como texto
+    reader.readAsText(file);
   }
 }
-
 </script>
 
-<script lang="ts">
-  export default {
-    name: 'SortPage'
-  }
-</script>
 
 <style>
-  :root {
-    --primary-color: #41658A;
-    --secondary-color: #F0B67F;
-    --background-color: #EEF5DB;
-    --accent-color: #C7EFCF;
-    --text-color: #D6D1B1;
-  }
+/* Estilo principal */
+.container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background-color: #333333;
+  min-height: 100vh;
+}
 
-  .container {
-    display: flex;
-    gap: 20px;
-    padding: 20px;
-    background-color: var(--background-color);
-    height: 60vh;
-    min-height: calc(100vh - 40px);
-  }
+/* Barra lateral */
+.sidebar {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background-color: #555b6e;
+  border-radius: 8px;
+  padding: 15px;
+}
 
-  .sidebar {
-    width: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    height: 60vh;
-  }
+/* Grupo de botones */
+.button-group {
+  background-color: #555b6e;
+  border: 2px solid #ffd6ba;
+  border-radius: 10px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-  .button-group {
-    background-color: white;
-    border: 2px solid var(--primary-color);
-    border-radius: 5px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 11px;
-  }
+.button-group h2 {
+  color: #bee3db;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 1.6rem;
+}
 
-  .button-group h2 {
-    color: var(--primary-color);
-    text-align: center;
-    margin: 0 0 10px 0;
-    font-size: 1.5rem;
-  }
+/* Botones */
+.action-button {
+  padding: 12px;
+  background-color: #89b0ae;
+  border: none;
+  border-radius: 8px;
+  color: #333333;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
 
-  .action-button {
-    padding: 10px;
-    background-color: white;
-    border: 2px solid var(--secondary-color);
-    border-radius: 5px;
-    color: var(--primary-color);
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
+.action-button:hover {
+  background-color: #ffd6ba;
+  transform: scale(1.05);
+}
 
-  .action-button:hover {
-    background-color: var(--accent-color);
-  }
+/* Contenedor del gráfico */
+.chart-container {
+  flex: 1;
+  background-color: #333333;
+  border: 2px solid #89b0ae;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  background-image: linear-gradient(#555b6e 1px, transparent 1px),
+                    linear-gradient(90deg, #555b6e 1px, transparent 1px);
+  background-size: 20px 20px;
+}
 
-  .chart-container {
-    flex: 1;
-    background-color: white;
-    border: 2px solid var(--primary-color);
-    border-radius: 5px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 50vh;
-  }
+/* Gráfico */
+.chart {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  position: relative;
+}
 
-  .chart {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    position: relative;
-  }
+/* Eje Y */
+.y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-right: 10px;
+  height: 100%;
+}
 
-  .y-axis {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding-right: 10px;
-    height: 100%;
-  }
+.y-label {
+  color: #bee3db;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
 
-  .y-label {
-    color: var(--primary-color);
-    font-weight: bold;
-  }
+/* Barras */
+.bars-container {
+  flex: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 100%;
+  border-left: 2px solid #ffd6ba;
+  border-bottom: 2px solid #ffd6ba;
+  padding: 0 10px;
+}
 
-  .bars-container {
-    flex: 1;
-    display: flex;
-    justify-content: space-around;
-    align-items: flex-end;
-    height: 100%;
-    border-left: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-  }
+.bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
 
-  .bar-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-    justify-content: flex-end;
-  }
+/* Estilo de las barras */
+.bar {
+  width: 20px;
+  background-color: #89b0ae;
+  border-radius: 5px 5px 0 0;
+  margin: 0 5px;
+  transition: transform 0.4s ease-in-out, height 0.4s ease, background-color 0.3s;
+  transform-origin: bottom;
+}
 
-  .bar {
-    width: 40px;
-    background-color: transparent;
-    border: 2px solid #4CAF50;
-    margin: 0 5px;
-    transition: height 0.5s ease; /* Animación de cambio de altura */
-  }
+/* Barra activa */
+.bar.active {
+  background-color: #ffd6ba;
+}
 
-  .bar.active {
-    background-color: #00BFFF; /* Barra activa de color azul */
-  }
+/* Etiqueta X */
+.x-label {
+  margin-top: 8px;
+  color: #bee3db;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
 
-  .x-label {
-    margin-top: 10px;
-    color: var(--primary-color);
-    font-weight: bold;
-  }
+/* Modales */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
 
-  .chart-container {
-    background-image: linear-gradient(#ddd 1px, transparent 1px),
-                        linear-gradient(90deg, #ddd 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
+.modal-content {
+  background-color: #555b6e;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 300px;
+  
+}
 
-  /* Estilos adicionales para los modales */
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .modal-content input {
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-
-  .modal-content button {
-    padding: 10px;
-    background-color: #41658A;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .modal-content button:hover {
-    background-color: #355a6a;
-  }
-  .list-container {
-  margin-top: 20px;
+.modal-content input {
   padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
+  border: 1px solid #89b0ae;
+  border-radius: 8px;
+}
+
+.modal-content button {
+  padding: 10px;
+  background-color: #89b0ae;
+  color: #333333;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-content button:hover {
+  background-color: #ffd6ba;
+}
+
+/* Listas (original y ordenada) */
+.list-container {
+  margin-top: 20px;
+  background-color: #555b6e;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .list-container h3 {
-  color: #41658A;
+  color: #bee3db;
   font-size: 1.2rem;
 }
 
 .list-container p {
+  color: #fff;
   font-size: 1rem;
-  color: #555;
+  word-break: break-word;
+}
+/* Títulos */
+h2, h3 {
+  color: #bee3db; /* Verde clarito */
+}
+
+/* Texto normal */
+p, span, li {
+  color: #ccd6dd; /* Gris muy clarito */
+}
+
+/* Botones */
+button, .action-button, .tutorial-button {
+  color: #333333; /* Texto oscuro para fondo claro */
+}
+
+/* Texto dentro del modal */
+.modal-content h2, 
+.modal-content p {
+  color: #ffffff; /* Texto blanco en modales */
+}
+
+/* Textos en el contenedor de listas */
+.list-container h3 {
+  color: #bee3db;
+}
+.list-container p {
+  color: #ccd6dd;
 }
 
 </style>
+

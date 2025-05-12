@@ -1,10 +1,17 @@
 <template>
   <div class="matrix-popup" :style="popupStyle">
     <div class="matrix-popup-header" @mousedown="onHeaderMouseDown">
-      <span>Caminos más cortos (Johnson)</span>
-      <button class="close-button" @click="closePopup">X</button>
-    </div>
+  <span>Caminos más cortos (Johnson)</span>
+  <div class="d-flex align-items-center gap-2">
+    <button class="btn btn-outline-info btn-sm" @click="showHelp = true">
+      <i class="fas fa-info-circle"></i>
+    </button>
+    <button class="close-button" @click="closePopup">X</button>
+  </div>
+</div>
+
     <div class="matrix-popup-content">
+      <HelpJohnsonPopup v-if="showHelp" @skip="showHelp = false" />
       <div class="graph-container">
         <!-- Nodos (movibles) -->
         <div
@@ -135,6 +142,7 @@
 
 <script>
 import { animateGraphCriticalPath } from '@/animations/animateGraphCriticalPath';
+import HelpJohnsonPopup from './HelpJohnsonPopup.vue'
 
 export default {
   name: 'JohnsonPopup',
@@ -144,11 +152,16 @@ export default {
     popupStyle: Object,
     results: Object, // Respuesta del backend
   },
+  components: {   HelpJohnsonPopup,  },
+
   data() {
     return {
       draggingNode: null,
       dragOffsetX: 0,
       dragOffsetY: 0,
+      showHelp: false,  // <-- Añadir esta línea
+
+
     };
   },
   mounted() {
