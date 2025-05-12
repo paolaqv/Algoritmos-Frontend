@@ -26,10 +26,8 @@
         <button id="btn-arbol-binario" class="sidebar-button" @click="openBinaryTreePopup">
           Árbol Binario
         </button>
-        <button class="sidebar-button" @click="openKruskalPopup">
-         Kruskal
-        </button>
-
+        <button class="sidebar-button" @click="openKruskalPopup">Kruskal</button>
+        <button class="sidebar-button" @click="showDijkstraPopup = true">Dijkstra</button>
       </div>
     </aside>
     <main ref="contentArea" class="content" @click="openNodePopup">
@@ -151,18 +149,9 @@
           }
         "
       />
-      <BinaryTreePopup
-        v-if="showBinaryTreePopup"
-        @close="showBinaryTreePopup = false"
-      />
-<KruskalPopup
-  v-model="showKruskalPopup"
-  :nodes="nodes"
-  :edges="edges"
-  :layouts="layouts"
-  :configs="configs"
-/>
-
+      <BinaryTreePopup v-if="showBinaryTreePopup" @close="showBinaryTreePopup = false" />
+      <KruskalPopup v-model="showKruskalPopup" :nodes="nodes" :edges="edges" />
+      <DijkstraPopup v-model="showDijkstraPopup" :nodes="nodes" :edges="edges" />
     </main>
 
     <footer class="bottom-bar">
@@ -320,6 +309,7 @@ import HelpNorthWest from '../components/HelpNorthWest.vue'
 import AssignmentPopup from '../components/AssignmentPopup.vue'
 import BinaryTreePopup from '../components/BinaryTreePopup.vue'
 import KruskalPopup from '../components/KruskalPopup.vue'
+import DijkstraPopup from '../components/DijkstraPopup.vue'
 
 export default {
   components: {
@@ -330,7 +320,7 @@ export default {
     AssignmentPopup,
     BinaryTreePopup,
     KruskalPopup,
-
+    DijkstraPopup,
   },
 
   name: 'GraphsPage',
@@ -411,6 +401,7 @@ export default {
       showBinaryTreePopup: false,
       //
       showKruskalPopup: false,
+      showDijkstraPopup: false,
     }
   },
 
@@ -434,17 +425,14 @@ export default {
     },
   },
   methods: {
-
     openKruskalPopup() {
-       console.log('Botón Kruskal presionado')
-       this.showKruskalPopup = true
-
-
+      console.log('Botón Kruskal presionado')
+      this.showKruskalPopup = true
     },
     openBinaryTreePopup() {
-  console.log('Botón Árbol Binario presionado')
-  this.showBinaryTreePopup = true
-},
+      console.log('Botón Árbol Binario presionado')
+      this.showBinaryTreePopup = true
+    },
 
     toggleHelp() {
       this.isHelpActive = !this.isHelpActive // Cambia el estado de isHelpActive
@@ -1228,7 +1216,7 @@ export default {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition:  0.3s;
+  transition: 0.3s;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1275,7 +1263,7 @@ export default {
   cursor: pointer;
   border: none;
   border-radius: 5px;
-  transition:  0.3s;
+  transition: 0.3s;
 }
 
 .cancel-button {
