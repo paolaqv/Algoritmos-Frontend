@@ -231,8 +231,8 @@
             <option v-for="n in nodes" :key="n.id" :value="n.name">{{ n.name }}</option>
           </select>
         </label>
-        <button @click="runDijkstra('min')" class="mode-btn">Minimizar</button>
-        <button @click="runDijkstra('max')" class="mode-btn">Maximizar</button>
+        <button @click="runDijkstra(false)" class="mode-btn">Minimizar</button>
+        <button @click="runDijkstra(true)" class="mode-btn">Maximizar</button>
       </div>
       <div class="graph-preview">
         <!-- Duplicado del canvas: nodos -->
@@ -259,6 +259,8 @@
           </marker>
           <g v-for="(edge, i) in previewEdges" :key="'d-edge-' + i">
             <line
+              :id="dijkstraEdgeIds.includes(edge.id) ? 'mst-edge-'+edge.id : null"
+              :class="dijkstraEdgeIds.includes(edge.id) ? 'mst-edge' : ''"
               :x1="edge.calculated.startX"
               :y1="edge.calculated.startY"
               :x2="edge.calculated.endX"
@@ -442,6 +444,7 @@ import HelpNorthWest from '../components/HelpNorthWest.vue'
 import AssignmentPopup from '../components/AssignmentPopup.vue'
 import BinaryTreePopup from '../components/BinaryTreePopup.vue'
 import { fetchMstEdgeIds, colorEdges } from '@/utils/kruskalAlg'
+import { fetchDijkstraEdgeIds } from '@/utils/dijkstraAlg'
 export default {
   components: {
     JohnsonPopup,
@@ -528,15 +531,17 @@ export default {
       showNorthWestHelp: false,
       //
       showBinaryTreePopup: false,
-//-------------------------------------------
+//--------kruskal-----------------------------------
       kruskalMode: 'min',
       mstEdgeIds: [],  
       mstColors: {},
-
+//--------dijkstra-----------------------------------
       dijkstraMode: 'min',      
-      dijkstraStart: null,
-      dijkstraEnd: null,
-//-------------------------------------------
+      dijkstraStart: '',
+      dijkstraEnd:   '',
+      dijkstraEdgeIds: [],
+      dijkstraColors: {},
+      activeAlgorithm: '',
     }
   },
 
@@ -562,7 +567,14 @@ export default {
 //-----------------------------------------------------------------
     // Genera edges con cálculo de posiciones para los previews
     previewEdges() {
-      return colorEdges(this.edges, this.mstEdgeIds,this.mstColors)
+      //return colorEdges(this.edges, this.mstEdgeIds,this.mstColors)
+      const ids = this.activeAlgorithm === 'dijkstra'
+      ? this.dijkstraEdgeIds
+      : this.mstEdgeIds
+const colors = this.activeAlgorithm === 'dijkstra'
+                     ? this.dijkstraColors
+                       : this.mstColors
+      return colorEdges(this.edges, ids, colors)
     },
   },
 //------------------------------------------------------------
@@ -575,6 +587,7 @@ export default {
       this.$refs.kruskalDialog.close()
     },
     async runKruskal(mode) {
+      this.activeAlgorithm = 'kruskal'
      this.kruskalMode = mode ? 'max' : 'min'
       if (!this.nodes.length || !this.edges.length) {
         return Swal.fire({
@@ -609,40 +622,49 @@ export default {
           })
         }
         await this.$nextTick()
-        this.animateMstEdges()  
+        this.animateHighlightEdges() 
     },
-    animateMstEdges() {
-    gsap.killTweensOf('.mst-edge')
-    const dialog = this.$refs.kruskalDialog
-    const allLines = dialog.querySelectorAll('svg.edges line')
-    allLines.forEach(line => {
+
+  //------------------------------------------------------
+animateHighlightEdges() {
+    const algo = this.activeAlgorithm
+    console.log('[animateHighlightEdges] algoritmo activo:', algo)
+
+    const dlg = algo === 'dijkstra'
+      ? this.$refs.dijkstraDialog
+      : this.$refs.kruskalDialog
+
+    // 1) reset
+    dlg.querySelectorAll('svg.edges line').forEach(line => {
       gsap.killTweensOf(line)
       line.style.strokeDasharray  = ''
       line.style.strokeDashoffset = ''
     })
-    this.mstEdgeIds.forEach(id => {
-      const line = document.querySelector(`#mst-edge-${id}`)
-      this.mstEdgeIds.forEach(id => {
-      const line = dialog.querySelector(`#mst-edge-${id}`)
-      if (!line) return
-      // Longitud de la línea
-      const length = line.getTotalLength()
-      // Prepara dasharray/dashoffset
-      gsap.set(line, {
-        strokeDasharray: length,
-        strokeDashoffset: length
-      })
-      // Anima dashoffset → 0 en bucle
-      gsap.to(line, {
+
+    // 2) animar sólo resaltadas
+    const edgeIds = algo === 'dijkstra'
+      ? this.dijkstraEdgeIds
+      : this.mstEdgeIds
+
+    console.log('[animateHighlightEdges] vamos a animar IDs:', edgeIds)
+
+    edgeIds.forEach(id => {
+      const ln = dlg.querySelector(`#mst-edge-${id}`)
+      if (!ln) {
+        console.warn(`[animateHighlightEdges] no encontré línea mst-edge-${id}`)
+        return
+      }
+      const len = ln.getTotalLength()
+      gsap.set(ln, { strokeDasharray: len, strokeDashoffset: len })
+      gsap.to(ln, {
         strokeDashoffset: 0,
         duration: 1.5,
         ease: 'none',
         repeat: -1
       })
     })
-  })
   },
-
+//-----------------------------------------------------
     openDijkstraModal() {
       this.$refs.dijkstraDialog.showModal()
       // Iniciar selects con primer nodo si no hay valor
@@ -652,11 +674,53 @@ export default {
     closeDijkstraModal() {
       this.$refs.dijkstraDialog.close()
     },
-    runDijkstra(mode) {
-      // Lógica de Dijkstra con dijkstraStart, dijkstraEnd y dijkstraMode
-      this.dijkstraMode = mode
-      console.log('Dijkstra:', this.dijkstraStart, this.dijkstraEnd, this.dijkstraMode)
-    },
+
+    
+async runDijkstra(maximize) {
+    this.activeAlgorithm = 'dijkstra'
+    this.dijkstraMode = maximize ? 'max' : 'min'
+    console.log('[runDijkstra] modo:', maximize)
+    console.log('[runDijkstra] start/end:', this.dijkstraStart, this.dijkstraEnd)
+
+    if (!this.dijkstraStart || !this.dijkstraEnd) {
+      return Swal.fire({
+        icon: 'info',
+        title: 'Selecciona nodo inicio y fin'
+      })
+    }
+    this.edges = this.edges.map((e, i) => ({
+      id: e.id || `e${i + 1}`,
+      ...e
+    }))
+    console.log('[runDijkstra] edges tras asegurar IDs:', this.edges)
+    try {
+      console.log('[runDijkstra] llamando fetchDijkstraEdgeIds…')
+      this.dijkstraEdgeIds = await fetchDijkstraEdgeIds(
+        this.nodes,
+        this.edges,
+        this.dijkstraStart,
+        this.dijkstraEnd,
+        maximize
+      )
+      console.log('[runDijkstra] edge IDs recibidos:', this.dijkstraEdgeIds)
+        this.dijkstraColors = {}
+        this.dijkstraEdgeIds.forEach(id => {
+        const hue = Math.floor(Math.random() * 360)  // 0°–60° rojo→amarillo
+        this.dijkstraColors[id] = `hsl(${hue},100%,50%)`
+      })
+      console.log('[runDijkstra] colores asignados:', this.dijkstraColors)
+    } catch (err) {
+      console.error('[runDijkstra] ERROR:', err)
+      return Swal.fire({
+        icon: 'error',
+        title: 'Error en Dijkstra',
+        text: err.message
+      })
+    }
+
+    await this.$nextTick()
+    this.animateHighlightEdges()
+  },
 //------------------------------------------------------------
     openBinaryTreePopup() {
       console.log('Botón Árbol Binario presionado')
