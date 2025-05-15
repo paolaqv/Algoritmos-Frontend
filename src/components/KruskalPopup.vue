@@ -178,12 +178,8 @@ function close() {
 }
 
 .popup-header {
-  padding: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: white;
-  position: relative;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 1.5rem; color: #fff;
 }
 
 .gradient-bg {

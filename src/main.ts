@@ -4,7 +4,6 @@ import App from './App.vue'
 import router from './router' // Importa el enrutador
 import VNetworkGraph from 'v-network-graph'
 import 'v-network-graph/lib/style.css'
-
 import '@fortawesome/fontawesome-free/css/all.min.css'
 
 const app = createApp(App)

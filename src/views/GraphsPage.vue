@@ -26,8 +26,8 @@
         <button id="btn-arbol-binario" class="sidebar-button" @click="openBinaryTreePopup">
           Árbol Binario
         </button>
-        <button class="sidebar-button" @click="openKruskalPopup">Kruskal</button>
-        <button class="sidebar-button" @click="showDijkstraPopup = true">Dijkstra</button>
+        <button class="sidebar-button" @click="openKruskalModal">Kruskal</button>
+        <button class="sidebar-button" @click="openDijkstraModal">Dijkstra</button>
       </div>
     </aside>
     <main ref="contentArea" class="content" @click="openNodePopup">
@@ -150,9 +150,137 @@
         "
       />
       <BinaryTreePopup v-if="showBinaryTreePopup" @close="showBinaryTreePopup = false" />
-      <KruskalPopup v-model="showKruskalPopup" :nodes="nodes" :edges="edges" />
-      <DijkstraPopup v-model="showDijkstraPopup" :nodes="nodes" :edges="edges" />
     </main>
+<!-- -------------------------------------------------------------------------- -->
+    <!-- Popup Kruskal -->
+    <dialog ref="kruskalDialog" class="popup-window">
+      <h3>Kruskal</h3>
+      <div class="modal-controls">
+        <button @click="runKruskal('min')" class="mode-btn">Minimizar</button>
+        <button @click="runKruskal('max')" class="mode-btn">Maximizar</button>
+      </div>
+      <div class="graph-preview">
+        <!-- Duplicado del canvas: nodos -->
+        <div
+          v-for="(node, i) in nodes"
+          :key="'k-node-' + i"
+          class="node"
+          :style="{
+            top: node.y + 'px',
+            left: node.x + 'px',
+            backgroundColor: node.color,
+          }"
+        >
+          {{ node.name }}
+        </div>
+        <!-- Duplicado del canvas: aristas -->
+        <svg class="edges">
+          <marker
+            id="arrow"
+            viewBox="0 0 10 10"
+            refX="10"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="black" />
+          </marker>
+          <g v-for="(edge, i) in previewEdges" :key="'k-edge-' + i">
+            <line
+              :x1="edge.calculated.startX"
+              :y1="edge.calculated.startY"
+              :x2="edge.calculated.endX"
+              :y2="edge.calculated.endY"
+              :stroke="edge.color"
+              stroke-width="2"
+              :marker-end="edge.direction === 'directed' ? 'url(#arrow)' : ''"
+            />
+            <!-- peso en el punto medio -->
+            <text
+              :x="(edge.calculated.startX + edge.calculated.endX) / 2"
+              :y="(edge.calculated.startY + edge.calculated.endY) / 2 - 5"
+              fill="#000"
+              font-size="10"
+              text-anchor="middle"
+            >
+              {{ edge.weight }}
+            </text>
+          </g>
+        </svg>
+      </div>
+      <button class="close-btn" @click="$refs.kruskalDialog.close()">Cerrar</button>
+    </dialog>
+<!-- -------------------------------------------------------------------------- -->
+    <!-- Popup Dijkstra -->
+    <dialog ref="dijkstraDialog" class="popup-window">
+      <h3>Dijkstra</h3>
+      <div class="modal-controls">
+        <label
+          >Inicio:
+          <select v-model="dijkstraStart">
+            <option v-for="n in nodes" :key="n.id" :value="n.name">{{ n.name }}</option>
+          </select>
+        </label>
+        <label
+          >Fin:
+          <select v-model="dijkstraEnd">
+            <option v-for="n in nodes" :key="n.id" :value="n.name">{{ n.name }}</option>
+          </select>
+        </label>
+        <button @click="runDijkstra('min')" class="mode-btn">Minimizar</button>
+        <button @click="runDijkstra('max')" class="mode-btn">Maximizar</button>
+      </div>
+      <div class="graph-preview">
+        <!-- Duplicado del canvas: nodos -->
+        <div
+          v-for="(node, i) in nodes"
+          :key="'d-node-' + i"
+          class="node"
+          :style="{ top: node.y + 'px', left: node.x + 'px', backgroundColor: node.color }"
+        >
+          {{ node.name }}
+        </div>
+        <!-- Duplicado del canvas: aristas -->
+        <svg class="edges">
+          <marker
+            id="arrow"
+            viewBox="0 0 10 10"
+            refX="10"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="black" />
+          </marker>
+          <g v-for="(edge, i) in previewEdges" :key="'d-edge-' + i">
+            <line
+              :x1="edge.calculated.startX"
+              :y1="edge.calculated.startY"
+              :x2="edge.calculated.endX"
+              :y2="edge.calculated.endY"
+              :stroke="edge.color"
+              stroke-width="2"
+              :marker-end="edge.direction === 'directed' ? 'url(#arrow)' : ''"
+            />
+            <!-- peso -->
+            <text
+              :x="(edge.calculated.startX + edge.calculated.endX) / 2"
+              :y="(edge.calculated.startY + edge.calculated.endY) / 2 - 5"
+              fill="#000"
+              font-size="10"
+              text-anchor="middle"
+            >
+              {{ edge.weight }}
+            </text>
+          </g>
+        </svg>
+      </div>
+      <button class="close-btn" @click="$refs.dijkstraDialog.close()">Cerrar</button>
+    </dialog>
+<!-- -------------------------------------------------------------------------- -->
+
 
     <footer class="bottom-bar">
       <button
@@ -308,8 +436,6 @@ import NorthWestPopup from '../components/NorthWestPopup.vue'
 import HelpNorthWest from '../components/HelpNorthWest.vue'
 import AssignmentPopup from '../components/AssignmentPopup.vue'
 import BinaryTreePopup from '../components/BinaryTreePopup.vue'
-import KruskalPopup from '../components/KruskalPopup.vue'
-import DijkstraPopup from '../components/DijkstraPopup.vue'
 
 export default {
   components: {
@@ -319,8 +445,6 @@ export default {
     HelpNorthWest,
     AssignmentPopup,
     BinaryTreePopup,
-    KruskalPopup,
-    DijkstraPopup,
   },
 
   name: 'GraphsPage',
@@ -399,9 +523,12 @@ export default {
       showNorthWestHelp: false,
       //
       showBinaryTreePopup: false,
-      //
-      showKruskalPopup: false,
-      showDijkstraPopup: false,
+//-------------------------------------------
+      kruskalMode: 'min',
+      dijkstraMode: 'min',
+      dijkstraStart: null,
+      dijkstraEnd: null,
+//-------------------------------------------
     }
   },
 
@@ -423,12 +550,56 @@ export default {
     totalSum() {
       return this.rowSums.reduce((a, b) => a + b, 0)
     },
-  },
-  methods: {
-    openKruskalPopup() {
-      console.log('Botón Kruskal presionado')
-      this.showKruskalPopup = true
+
+//-----------------------------------------------------------------
+    // Genera edges con cálculo de posiciones para los previews
+    previewEdges() {
+      const radius = 22.5
+      return this.edges.map((edge) => {
+        const dx = edge.node2.x - edge.node1.x
+        const dy = edge.node2.y - edge.node1.y
+        const angle = Math.atan2(dy, dx)
+        const startX = edge.node1.x + Math.cos(angle) * radius
+        const startY = edge.node1.y + Math.sin(angle) * radius
+        const endX = edge.node2.x - Math.cos(angle) * radius
+        const endY = edge.node2.y - Math.sin(angle) * radius
+        return {
+          ...edge,
+          calculated: { startX, startY, endX, endY },
+        }
+      })
     },
+  },
+//------------------------------------------------------------
+  methods: {
+//------------------------------------------------------------
+    openKruskalModal() {
+      this.$refs.kruskalDialog.showModal()
+    },
+    closeKruskalModal() {
+      this.$refs.kruskalDialog.close()
+    },
+    runKruskal(mode) {
+      // Aquí se llama a la lógica de Kruskal
+      this.kruskalMode = mode
+      console.log('Kruskal:', this.kruskalMode)
+    },
+
+    openDijkstraModal() {
+      this.$refs.dijkstraDialog.showModal()
+      // Iniciar selects con primer nodo si no hay valor
+      if (!this.dijkstraStart && this.nodes.length) this.dijkstraStart = this.nodes[0].name
+      if (!this.dijkstraEnd && this.nodes.length) this.dijkstraEnd = this.nodes[0].name
+    },
+    closeDijkstraModal() {
+      this.$refs.dijkstraDialog.close()
+    },
+    runDijkstra(mode) {
+      // Lógica de Dijkstra con dijkstraStart, dijkstraEnd y dijkstraMode
+      this.dijkstraMode = mode
+      console.log('Dijkstra:', this.dijkstraStart, this.dijkstraEnd, this.dijkstraMode)
+    },
+//------------------------------------------------------------
     openBinaryTreePopup() {
       console.log('Botón Árbol Binario presionado')
       this.showBinaryTreePopup = true
@@ -440,7 +611,7 @@ export default {
     openMatrixPopup() {
       this.showMatrixPopup = true
     },
-    //Matriz-----------------------------------------------
+    //Matriz---------------
     async openMatrixPopup() {
       if (!this.nodes || this.nodes.length === 0) {
         Swal.fire({
@@ -1566,5 +1737,95 @@ export default {
   font-weight: bold;
   color: #000;
   border: 2px solid #4a78a2;
+}
+/*------------------------------------------------------------*/
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.graph-preview {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+}
+.graph-preview .node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+}
+.graph-preview .edges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.close-btn {
+  margin-top: 1rem;
+  background: #d776e4;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Ventana emergente estilo dialog */
+.popup-window {
+  border: none;
+  border-radius: 8px;
+  padding: 1rem;
+  width: 80vw;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.mode-btn {
+  background: #558ebc;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  margin-right: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.mode-btn:hover {
+  background: #4a78a2;
 }
 </style>
