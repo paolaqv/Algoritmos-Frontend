@@ -156,8 +156,8 @@
     <dialog ref="kruskalDialog" class="popup-window">
       <h3>Kruskal</h3>
       <div class="modal-controls">
-        <button @click="runKruskal('min')" class="mode-btn">Minimizar</button>
-        <button @click="runKruskal('max')" class="mode-btn">Maximizar</button>
+        <button @click="runKruskal(false)" class="mode-btn">Minimizar</button>
+        <button @click="runKruskal(true)" class="mode-btn">Maximizar</button>
       </div>
       <div class="graph-preview">
         <!-- Duplicado del canvas: nodos -->
@@ -188,12 +188,15 @@
           </marker>
           <g v-for="(edge, i) in previewEdges" :key="'k-edge-' + i">
             <line
+              :id="'mst-edge-'+edge.id ? 'mst-edge-'+edge.id : null"
+              :class="mstEdgeIds.includes(edge.id) ? 'mst-edge' : ''" 
               :x1="edge.calculated.startX"
               :y1="edge.calculated.startY"
               :x2="edge.calculated.endX"
               :y2="edge.calculated.endY"
               :stroke="edge.color"
               stroke-width="2"
+              class="mst-edge"
               :marker-end="edge.direction === 'directed' ? 'url(#arrow)' : ''"
             />
             <!-- peso en el punto medio -->
@@ -431,12 +434,14 @@
 import HelpView from './HelpView.vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import gsap from 'gsap'
+
 import JohnsonPopup from '../components/JohnsonPopup.vue'
 import NorthWestPopup from '../components/NorthWestPopup.vue'
 import HelpNorthWest from '../components/HelpNorthWest.vue'
 import AssignmentPopup from '../components/AssignmentPopup.vue'
 import BinaryTreePopup from '../components/BinaryTreePopup.vue'
-
+import { fetchMstEdgeIds, colorEdges } from '@/utils/kruskalAlg'
 export default {
   components: {
     JohnsonPopup,
@@ -525,7 +530,10 @@ export default {
       showBinaryTreePopup: false,
 //-------------------------------------------
       kruskalMode: 'min',
-      dijkstraMode: 'min',
+      mstEdgeIds: [],  
+      mstColors: {},
+
+      dijkstraMode: 'min',      
       dijkstraStart: null,
       dijkstraEnd: null,
 //-------------------------------------------
@@ -554,20 +562,7 @@ export default {
 //-----------------------------------------------------------------
     // Genera edges con cálculo de posiciones para los previews
     previewEdges() {
-      const radius = 22.5
-      return this.edges.map((edge) => {
-        const dx = edge.node2.x - edge.node1.x
-        const dy = edge.node2.y - edge.node1.y
-        const angle = Math.atan2(dy, dx)
-        const startX = edge.node1.x + Math.cos(angle) * radius
-        const startY = edge.node1.y + Math.sin(angle) * radius
-        const endX = edge.node2.x - Math.cos(angle) * radius
-        const endY = edge.node2.y - Math.sin(angle) * radius
-        return {
-          ...edge,
-          calculated: { startX, startY, endX, endY },
-        }
-      })
+      return colorEdges(this.edges, this.mstEdgeIds,this.mstColors)
     },
   },
 //------------------------------------------------------------
@@ -579,11 +574,74 @@ export default {
     closeKruskalModal() {
       this.$refs.kruskalDialog.close()
     },
-    runKruskal(mode) {
-      // Aquí se llama a la lógica de Kruskal
-      this.kruskalMode = mode
-      console.log('Kruskal:', this.kruskalMode)
+    async runKruskal(mode) {
+     this.kruskalMode = mode ? 'max' : 'min'
+      if (!this.nodes.length || !this.edges.length) {
+        return Swal.fire({
+          icon: 'info',
+          title: 'Grafica uno primero',
+          text: 'No hay grafo para calcular Kruskal'
+           })
+        }
+        this.edges = this.edges.map((edge, idx) => ({
+          id: edge.id || `e${idx + 1}`,
+          ...edge
+          }))
+        try {
+          this.mstEdgeIds = await fetchMstEdgeIds(
+            this.nodes,
+            this.edges,
+            mode
+        )
+        this.mstColors = {}
+        this.mstEdgeIds.forEach(id => {
+          const hue = Math.floor(Math.random() * 360)
+          this.mstColors[id] = `hsl(${hue}, 100%, 50%)`
+          })
+        console.log('MST IDs:', this.mstEdgeIds)
+        console.log('Front IDs:', this.edges.map(e => e.id))
+        } catch (err) {
+          console.error(err)
+          Swal.fire({
+            icon: 'error',
+            title: 'Error en Kruskal',
+            text: err.message
+          })
+        }
+        await this.$nextTick()
+        this.animateMstEdges()  
     },
+    animateMstEdges() {
+    gsap.killTweensOf('.mst-edge')
+    const dialog = this.$refs.kruskalDialog
+    const allLines = dialog.querySelectorAll('svg.edges line')
+    allLines.forEach(line => {
+      gsap.killTweensOf(line)
+      line.style.strokeDasharray  = ''
+      line.style.strokeDashoffset = ''
+    })
+    this.mstEdgeIds.forEach(id => {
+      const line = document.querySelector(`#mst-edge-${id}`)
+      this.mstEdgeIds.forEach(id => {
+      const line = dialog.querySelector(`#mst-edge-${id}`)
+      if (!line) return
+      // Longitud de la línea
+      const length = line.getTotalLength()
+      // Prepara dasharray/dashoffset
+      gsap.set(line, {
+        strokeDasharray: length,
+        strokeDashoffset: length
+      })
+      // Anima dashoffset → 0 en bucle
+      gsap.to(line, {
+        strokeDashoffset: 0,
+        duration: 1.5,
+        ease: 'none',
+        repeat: -1
+      })
+    })
+  })
+  },
 
     openDijkstraModal() {
       this.$refs.dijkstraDialog.showModal()
@@ -1656,8 +1714,8 @@ export default {
   font-size: 12px;
   cursor: pointer;
   transition:
-    background 0.3s,
-    transform 0.2s;
+  background 0.3s,
+  transform 0.2s;
 }
 .sidebar-button:hover {
   background-color: #92cdc0;

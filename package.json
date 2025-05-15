@@ -20,7 +20,7 @@
     "axios": "^1.7.9",
     "bootstrap": "^5.3.6",
     "dagre": "^0.8.5",
-    "gsap": "^3.12.7",
+    "gsap": "^3.13.0",
     "pinia": "^3.0.2",
     "sweetalert2": "^11.17.2",
     "v-network-graph": "^0.9.21"
