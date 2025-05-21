@@ -154,10 +154,13 @@
 <!-- -------------------------------------------------------------------------- -->
     <!-- Popup Kruskal -->
     <dialog ref="kruskalDialog" class="popup-window">
+      <button class="popup-close" @click="$refs.kruskalDialog.close()">×</button>
+      <div class="popup-header mb-3 d-flex justify-content-between align-items-center">
       <h3>Kruskal</h3>
       <div class="modal-controls">
         <button @click="runKruskal(false)" class="mode-btn">Minimizar</button>
         <button @click="runKruskal(true)" class="mode-btn">Maximizar</button>
+      </div>
       </div>
       <div class="graph-preview">
         <!-- Duplicado del canvas: nodos -->
@@ -212,11 +215,13 @@
           </g>
         </svg>
       </div>
-      <button class="close-btn" @click="$refs.kruskalDialog.close()">Cerrar</button>
+      <HelpKruskalPopup/>
     </dialog>
 <!-- -------------------------------------------------------------------------- -->
     <!-- Popup Dijkstra -->
     <dialog ref="dijkstraDialog" class="popup-window">
+    <button class="popup-close" @click="$refs.dijkstraDialog.close()">×</button>
+    <div class="popup-header mb-3 d-flex justify-content-between align-items-center">
       <h3>Dijkstra</h3>
       <div class="modal-controls">
         <label
@@ -234,6 +239,7 @@
         <button @click="runDijkstra(false)" class="mode-btn">Minimizar</button>
         <button @click="runDijkstra(true)" class="mode-btn">Maximizar</button>
       </div>
+    </div>
       <div class="graph-preview">
         <!-- Duplicado del canvas: nodos -->
         <div
@@ -282,7 +288,7 @@
           </g>
         </svg>
       </div>
-      <button class="close-btn" @click="$refs.dijkstraDialog.close()">Cerrar</button>
+      <HelpDijkstraPopup/>
     </dialog>
 <!-- -------------------------------------------------------------------------- -->
 
@@ -437,14 +443,18 @@ import HelpView from './HelpView.vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import gsap from 'gsap'
+import '@/assets/css/DijsktraKruskalPopup.css'
 
 import JohnsonPopup from '../components/JohnsonPopup.vue'
 import NorthWestPopup from '../components/NorthWestPopup.vue'
 import HelpNorthWest from '../components/HelpNorthWest.vue'
 import AssignmentPopup from '../components/AssignmentPopup.vue'
 import BinaryTreePopup from '../components/BinaryTreePopup.vue'
+import HelpKruskalPopup from '@/components/HelpKruskalPopup.vue'
+import HelpDijkstraPopup from '@/components/HelpDijkstraPopup.vue'
 import { fetchMstEdgeIds, colorEdges } from '@/utils/kruskalAlg'
 import { fetchDijkstraEdgeIds } from '@/utils/dijkstraAlg'
+
 export default {
   components: {
     JohnsonPopup,
@@ -453,6 +463,8 @@ export default {
     HelpNorthWest,
     AssignmentPopup,
     BinaryTreePopup,
+    HelpKruskalPopup,
+    HelpDijkstraPopup
   },
 
   name: 'GraphsPage',
@@ -1890,11 +1902,12 @@ async runDijkstra(maximize) {
 .graph-preview {
   position: relative;
   width: 100%;
-  height: 70vh;
+  height: 60vh;
   background: #f7f7f7;
   border: 1px solid #ccc;
   border-radius: 5px;
   margin-bottom: 1rem;
+  margin-top: 20px;
 }
 .graph-preview .node {
   position: absolute;

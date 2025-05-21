@@ -1,8 +1,7 @@
 <template>
     <div>
       <!-- Botón flotante -->
-      <button class="floating-help-button" @click="visible = true">
-        ❓
+      <button class="floating-help-button" @click="visible = true">?
       </button>
   
       <!-- Popup de ayuda -->
@@ -25,7 +24,7 @@
                 <h2 class="text-primary mb-3">📘 Paso {{ step }}</h2>
                 <img
                   class="img-fluid rounded mb-3 border"
-                  :src="`/images/SortingStep${step}.png`"
+                  :src="`/images/sort${step}.png`"
                   :alt="`Paso ${step}`"
                 />
                 <p class="text-start" v-html="steps[step - 1]"></p>
@@ -50,9 +49,10 @@
   const step = ref(0);
   
   const steps = [
-    `✅ <strong>Paso 1:</strong> Selecciona ingresar la lista o genera una lista con valores aleatorios`,
-    `✅ <strong>Paso 2:</strong> Selecciona el algoritmo de ordenamiento que desee`,
-    `✅ <strong>Paso 3:</strong> podra ver el ordenamiento de manera y dinamica y la lista original`,
+        `✅ <strong>Paso 1:</strong> Selecciona ingresa la cantidad de numeros que tendra la lista o genera una lista con valores aleatorios`,
+    `✅ <strong>Paso 2:</strong> Ingresa valores validos para la lista`,
+    `✅ <strong>Paso 3:</strong> Selecciona el algoritmo de ordenamiento que desee`,
+    `✅ <strong>Paso 4:</strong> podra ver el ordenamiento de manera y dinamica y la lista original`,
   ];
   </script>
   

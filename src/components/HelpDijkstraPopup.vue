@@ -57,10 +57,8 @@ const step = ref(0)
 const steps = [
   `✅ <strong>Paso 1:</strong> Ingresa los nodos y conexiones (grafo) con sus respectivos pesos. 
   Asegúrate de que no haya pesos negativos.`,
-  `✅ <strong>Paso 2:</strong> Selecciona el nodo de inicio y el nodo final. El algoritmo buscará el camino más optimo entre ambos nodos.`,
-  `✅ <strong>Paso 3:</strong> Selecciona el criterio de optimización, maximizar o minimizar.`,
-  `✅ <strong>Paso 4:</strong> El algoritmo termina cuando ha visitado todos los nodos alcanzables. 
-  Puedes ver el camino más optimo entre ambos nodos.`,
+  `✅ <strong>Paso 2:</strong> Selecciona el nodo de inicio y el nodo final. El algoritmo buscará el camino más optimo entre ambos nodos. Y selecciona el criterio de optimización, maximizar o minimizar.`,
+  `✅ <strong>Paso 4:</strong> Podras observar el camino maximo o minimo en el grafo.`,
 ]
 </script>
 

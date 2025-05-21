@@ -1,0 +1,46 @@
+@import 'v-network-graph/lib/style.css';
+@import 'v-network-graph/lib/style.css';
+/* help Botón flotante */
+.fab {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: #89B0AE;
+  border: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  color: #FAF9F9;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.fab:hover {
+  transform: translateY(-3px);
+}
+
+/* X de cierre */
+.popup-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #FFD6BA;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.popup-close:hover {
+  color: #555B6E;
+}
+
+/* Header */
+.popup-header {
+  background: #555B6E;
+  color: #FAF9F9;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
