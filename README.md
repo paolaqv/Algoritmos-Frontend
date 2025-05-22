@@ -51,4 +51,12 @@ npm install sweetalert2
 ### GSAP
 ```sh
 npm install gsap
+npm install gsap --save  
+```
+
+```sh
+npm install v-network-graph  
+npm install dagre 
+npm install pinia
+
 ```

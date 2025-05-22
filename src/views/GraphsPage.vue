@@ -1,6 +1,6 @@
 <template>
   <div>
-   <nav class="navbar">
+    <nav class="navbar">
       <img src="@/assets/logo.svg" alt="Logo" class="logo" />
       <ul class="nav-links">
         <li><router-link to="/">Inicio</router-link></li>
@@ -13,11 +13,21 @@
   <div class="graphs-page">
     <aside class="sidebar">
       <div class="sidebar-buttons">
-        <button id= "btn-matriz" class="sidebar-button" @click="openMatrixPopup">matriz adyacente</button>
-        <button id= "btn-johnson" class="sidebar-button" @click="runJohnson">jonhson</button>
-        <button id= "btn-northwest" class="sidebar-button" @click="showNorthWestHelp = true">NorthWest</button>
-        <button id= "btn-minimizar" class="sidebar-button" @click="solveAssignment('min')">Minimizar</button>
-        <button id= "btn-maximizar" class="sidebar-button" @click="solveAssignment('max')">Maximizar</button>
+        <button id="btn-matriz" class="sidebar-button" @click="openMatrixPopup">
+          matriz adyacente
+        </button>
+        <button id="btn-johnson" class="sidebar-button" @click="runJohnson">jonhson</button>
+        <button id="btn-northwest" class="sidebar-button" @click="showNorthWestHelp = true">
+          NorthWest
+        </button>
+        <button id="btn-asignacion" class="sidebar-button" @click="openAssignmentModal">
+          Asignacion
+        </button>
+        <button id="btn-arbol-binario" class="sidebar-button" @click="openBinaryTreePopup">
+          Árbol Binario
+        </button>
+        <button class="sidebar-button" @click="openKruskalModal">Kruskal</button>
+        <button class="sidebar-button" @click="openDijkstraModal">Dijkstra</button>
       </div>
     </aside>
     <main ref="contentArea" class="content" @click="openNodePopup">
@@ -69,44 +79,13 @@
           </text>
         </g>
       </svg>
-
-      <!-- Modal para mostrar resultados de asignación -->
-      <div v-if="showAssignmentModal" class="modal-overlay" @click.self="closeAssignmentModal">
-        <div class="modal-content">
-          <h2>
-            Resultado de la Asignación ({{ assignmentMode === 'min' ? 'Minimizar' : 'Maximizar' }})
-          </h2>
-          <div class="matrix-container">
-            <table>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th v-for="(nodeB, index) in groupB" :key="index">{{ nodeB.name }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(nodeA, i) in groupA" :key="i">
-                  <th>{{ nodeA.name }}</th>
-                  <td v-for="(nodeB, j) in groupB" :key="j">
-                    {{ assignmentMatrix[i][j] }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="assignment-result">
-            <p><strong>Costo Total:</strong> {{ totalCost }}</p>
-            <p><strong>Asignaciones Óptimas:</strong></p>
-            <ul>
-              <li v-for="(pair, index) in optimalAssignment" :key="index">
-                {{ pair.nodeA.name }} → {{ pair.nodeB.name }} (Costo: {{ pair.cost }})
-              </li>
-            </ul>
-          </div>
-          <button class="close-button" @click="closeAssignmentModal">Cerrar</button>
-        </div>
-      </div>
-
+      <!--AssignmentPopup-->
+      <AssignmentPopup
+        v-if="showAssignmentModal"
+        :nodes="nodes"
+        :edges="edges"
+        @close="showAssignmentModal = false"
+      />
       <!-- Popup para matriz de adyacencia -->
       <div v-if="showMatrixPopup" class="matrix-popup" :style="matrixPopupStyle">
         <div class="matrix-popup-header" @mousedown="onPopupHeaderMouseDown">
@@ -146,14 +125,14 @@
       </div>
       <!-- Popup para resultados de Johnson -->
       <JohnsonPopup
-          v-if="showJohnsonPopup"
-          :nodes="nodes"
-          :edges="edges"
-          :results="johnsonResults"
-          :popupStyle="matrixPopupStyle"
-          @close="closeJohnsonPopup"
-          @start-drag="onPopupHeaderMouseDown"
-          @start-resize="startResizing"
+        v-if="showJohnsonPopup"
+        :nodes="nodes"
+        :edges="edges"
+        :results="johnsonResults"
+        :popupStyle="matrixPopupStyle"
+        @close="closeJohnsonPopup"
+        @start-drag="onPopupHeaderMouseDown"
+        @start-resize="startResizing"
       />
       <NorthWestPopup
         v-if="showNorthWestPopup"
@@ -163,10 +142,150 @@
       />
       <HelpNorthWest
         v-if="showNorthWestHelp"
-        @skip="() => { showNorthWestHelp = false; showNorthWestPopup = true }"
+        @skip="
+          () => {
+            showNorthWestHelp = false
+            showNorthWestPopup = true
+          }
+        "
       />
-
+      <BinaryTreePopup v-if="showBinaryTreePopup" @close="showBinaryTreePopup = false" />
     </main>
+<!-- -------------------------------------------------------------------------- -->
+    <!-- Popup Kruskal -->
+    <dialog ref="kruskalDialog" class="popup-window">
+      <h3>Kruskal</h3>
+      <div class="modal-controls">
+        <button @click="runKruskal(false)" class="mode-btn">Minimizar</button>
+        <button @click="runKruskal(true)" class="mode-btn">Maximizar</button>
+      </div>
+      <div class="graph-preview">
+        <!-- Duplicado del canvas: nodos -->
+        <div
+          v-for="(node, i) in nodes"
+          :key="'k-node-' + i"
+          class="node"
+          :style="{
+            top: node.y + 'px',
+            left: node.x + 'px',
+            backgroundColor: node.color,
+          }"
+        >
+          {{ node.name }}
+        </div>
+        <!-- Duplicado del canvas: aristas -->
+        <svg class="edges">
+          <marker
+            id="arrow"
+            viewBox="0 0 10 10"
+            refX="10"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="black" />
+          </marker>
+          <g v-for="(edge, i) in previewEdges" :key="'k-edge-' + i">
+            <line
+              :id="'mst-edge-'+edge.id ? 'mst-edge-'+edge.id : null"
+              :class="mstEdgeIds.includes(edge.id) ? 'mst-edge' : ''" 
+              :x1="edge.calculated.startX"
+              :y1="edge.calculated.startY"
+              :x2="edge.calculated.endX"
+              :y2="edge.calculated.endY"
+              :stroke="edge.color"
+              stroke-width="2"
+              class="mst-edge"
+              :marker-end="edge.direction === 'directed' ? 'url(#arrow)' : ''"
+            />
+            <!-- peso en el punto medio -->
+            <text
+              :x="(edge.calculated.startX + edge.calculated.endX) / 2"
+              :y="(edge.calculated.startY + edge.calculated.endY) / 2 - 5"
+              fill="#000"
+              font-size="10"
+              text-anchor="middle"
+            >
+              {{ edge.weight }}
+            </text>
+          </g>
+        </svg>
+      </div>
+      <button class="close-btn" @click="$refs.kruskalDialog.close()">Cerrar</button>
+    </dialog>
+<!-- -------------------------------------------------------------------------- -->
+    <!-- Popup Dijkstra -->
+    <dialog ref="dijkstraDialog" class="popup-window">
+      <h3>Dijkstra</h3>
+      <div class="modal-controls">
+        <label
+          >Inicio:
+          <select v-model="dijkstraStart">
+            <option v-for="n in nodes" :key="n.id" :value="n.name">{{ n.name }}</option>
+          </select>
+        </label>
+        <label
+          >Fin:
+          <select v-model="dijkstraEnd">
+            <option v-for="n in nodes" :key="n.id" :value="n.name">{{ n.name }}</option>
+          </select>
+        </label>
+        <button @click="runDijkstra(false)" class="mode-btn">Minimizar</button>
+        <button @click="runDijkstra(true)" class="mode-btn">Maximizar</button>
+      </div>
+      <div class="graph-preview">
+        <!-- Duplicado del canvas: nodos -->
+        <div
+          v-for="(node, i) in nodes"
+          :key="'d-node-' + i"
+          class="node"
+          :style="{ top: node.y + 'px', left: node.x + 'px', backgroundColor: node.color }"
+        >
+          {{ node.name }}
+        </div>
+        <!-- Duplicado del canvas: aristas -->
+        <svg class="edges">
+          <marker
+            id="arrow"
+            viewBox="0 0 10 10"
+            refX="10"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="black" />
+          </marker>
+          <g v-for="(edge, i) in previewEdges" :key="'d-edge-' + i">
+            <line
+              :id="dijkstraEdgeIds.includes(edge.id) ? 'mst-edge-'+edge.id : null"
+              :class="dijkstraEdgeIds.includes(edge.id) ? 'mst-edge' : ''"
+              :x1="edge.calculated.startX"
+              :y1="edge.calculated.startY"
+              :x2="edge.calculated.endX"
+              :y2="edge.calculated.endY"
+              :stroke="edge.color"
+              stroke-width="2"
+              :marker-end="edge.direction === 'directed' ? 'url(#arrow)' : ''"
+            />
+            <!-- peso -->
+            <text
+              :x="(edge.calculated.startX + edge.calculated.endX) / 2"
+              :y="(edge.calculated.startY + edge.calculated.endY) / 2 - 5"
+              fill="#000"
+              font-size="10"
+              text-anchor="middle"
+            >
+              {{ edge.weight }}
+            </text>
+          </g>
+        </svg>
+      </div>
+      <button class="close-btn" @click="$refs.dijkstraDialog.close()">Cerrar</button>
+    </dialog>
+<!-- -------------------------------------------------------------------------- -->
+
 
     <footer class="bottom-bar">
       <button
@@ -317,18 +436,23 @@
 import HelpView from './HelpView.vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
-import JohnsonPopup from '../components/JohnsonPopup.vue' 
+import gsap from 'gsap'
+
+import JohnsonPopup from '../components/JohnsonPopup.vue'
 import NorthWestPopup from '../components/NorthWestPopup.vue'
 import HelpNorthWest from '../components/HelpNorthWest.vue'
-
-
+import AssignmentPopup from '../components/AssignmentPopup.vue'
+import BinaryTreePopup from '../components/BinaryTreePopup.vue'
+import { fetchMstEdgeIds, colorEdges } from '@/utils/kruskalAlg'
+import { fetchDijkstraEdgeIds } from '@/utils/dijkstraAlg'
 export default {
   components: {
     JohnsonPopup,
     HelpView,
     NorthWestPopup,
-    HelpNorthWest
-
+    HelpNorthWest,
+    AssignmentPopup,
+    BinaryTreePopup,
   },
 
   name: 'GraphsPage',
@@ -389,6 +513,11 @@ export default {
       showJohnsonPopup: false,
       johnsonResults: {},
       // Propiedades para modal asignación
+      assignmentResults: {
+        min: null,
+        max: null,
+      },
+      activeAssignmentTab: 'min', // min o max
       showAssignmentModal: false,
       assignmentMatrix: [],
       totalCost: 0,
@@ -400,40 +529,211 @@ export default {
       //NorthWest
       showNorthWestPopup: false,
       showNorthWestHelp: false,
-
-
+      //
+      showBinaryTreePopup: false,
+//--------kruskal-----------------------------------
+      kruskalMode: 'min',
+      mstEdgeIds: [],  
+      mstColors: {},
+//--------dijkstra-----------------------------------
+      dijkstraMode: 'min',      
+      dijkstraStart: '',
+      dijkstraEnd:   '',
+      dijkstraEdgeIds: [],
+      dijkstraColors: {},
+      activeAlgorithm: '',
     }
   },
 
   computed: {
-  rowSums() {
-    return this.adjacencyMatrix.map(row =>
-      row.reduce((acc, cell) => acc + Number(cell), 0)
-    );
+    rowSums() {
+      return this.adjacencyMatrix.map((row) => row.reduce((acc, cell) => acc + Number(cell), 0))
+    },
+    colSums() {
+      if (!this.adjacencyMatrix.length) return []
+      const cols = this.adjacencyMatrix[0].length
+      let sums = Array(cols).fill(0)
+      this.adjacencyMatrix.forEach((row) => {
+        row.forEach((cell, j) => {
+          sums[j] += Number(cell)
+        })
+      })
+      return sums
+    },
+    totalSum() {
+      return this.rowSums.reduce((a, b) => a + b, 0)
+    },
+
+//-----------------------------------------------------------------
+    // Genera edges con cálculo de posiciones para los previews
+    previewEdges() {
+      //return colorEdges(this.edges, this.mstEdgeIds,this.mstColors)
+      const ids = this.activeAlgorithm === 'dijkstra'
+      ? this.dijkstraEdgeIds
+      : this.mstEdgeIds
+const colors = this.activeAlgorithm === 'dijkstra'
+                     ? this.dijkstraColors
+                       : this.mstColors
+      return colorEdges(this.edges, ids, colors)
+    },
   },
-  colSums() {
-    if (!this.adjacencyMatrix.length) return [];
-    const cols = this.adjacencyMatrix[0].length;
-    let sums = Array(cols).fill(0);
-    this.adjacencyMatrix.forEach(row => {
-      row.forEach((cell, j) => {
-        sums[j] += Number(cell);
-      });
-    });
-    return sums;
-  },
-  totalSum() {
-    return this.rowSums.reduce((a, b) => a + b, 0);
-  }
-},
+//------------------------------------------------------------
   methods: {
+//------------------------------------------------------------
+    openKruskalModal() {
+      this.$refs.kruskalDialog.showModal()
+    },
+    closeKruskalModal() {
+      this.$refs.kruskalDialog.close()
+    },
+    async runKruskal(mode) {
+      this.activeAlgorithm = 'kruskal'
+     this.kruskalMode = mode ? 'max' : 'min'
+      if (!this.nodes.length || !this.edges.length) {
+        return Swal.fire({
+          icon: 'info',
+          title: 'Grafica uno primero',
+          text: 'No hay grafo para calcular Kruskal'
+           })
+        }
+        this.edges = this.edges.map((edge, idx) => ({
+          id: edge.id || `e${idx + 1}`,
+          ...edge
+          }))
+        try {
+          this.mstEdgeIds = await fetchMstEdgeIds(
+            this.nodes,
+            this.edges,
+            mode
+        )
+        this.mstColors = {}
+        this.mstEdgeIds.forEach(id => {
+          const hue = Math.floor(Math.random() * 360)
+          this.mstColors[id] = `hsl(${hue}, 100%, 50%)`
+          })
+        console.log('MST IDs:', this.mstEdgeIds)
+        console.log('Front IDs:', this.edges.map(e => e.id))
+        } catch (err) {
+          console.error(err)
+          Swal.fire({
+            icon: 'error',
+            title: 'Error en Kruskal',
+            text: err.message
+          })
+        }
+        await this.$nextTick()
+        this.animateHighlightEdges() 
+    },
+
+  //------------------------------------------------------
+animateHighlightEdges() {
+    const algo = this.activeAlgorithm
+    console.log('[animateHighlightEdges] algoritmo activo:', algo)
+
+    const dlg = algo === 'dijkstra'
+      ? this.$refs.dijkstraDialog
+      : this.$refs.kruskalDialog
+
+    // 1) reset
+    dlg.querySelectorAll('svg.edges line').forEach(line => {
+      gsap.killTweensOf(line)
+      line.style.strokeDasharray  = ''
+      line.style.strokeDashoffset = ''
+    })
+
+    // 2) animar sólo resaltadas
+    const edgeIds = algo === 'dijkstra'
+      ? this.dijkstraEdgeIds
+      : this.mstEdgeIds
+
+    console.log('[animateHighlightEdges] vamos a animar IDs:', edgeIds)
+
+    edgeIds.forEach(id => {
+      const ln = dlg.querySelector(`#mst-edge-${id}`)
+      if (!ln) {
+        console.warn(`[animateHighlightEdges] no encontré línea mst-edge-${id}`)
+        return
+      }
+      const len = ln.getTotalLength()
+      gsap.set(ln, { strokeDasharray: len, strokeDashoffset: len })
+      gsap.to(ln, {
+        strokeDashoffset: 0,
+        duration: 1.5,
+        ease: 'none',
+        repeat: -1
+      })
+    })
+  },
+//-----------------------------------------------------
+    openDijkstraModal() {
+      this.$refs.dijkstraDialog.showModal()
+      // Iniciar selects con primer nodo si no hay valor
+      if (!this.dijkstraStart && this.nodes.length) this.dijkstraStart = this.nodes[0].name
+      if (!this.dijkstraEnd && this.nodes.length) this.dijkstraEnd = this.nodes[0].name
+    },
+    closeDijkstraModal() {
+      this.$refs.dijkstraDialog.close()
+    },
+
+    
+async runDijkstra(maximize) {
+    this.activeAlgorithm = 'dijkstra'
+    this.dijkstraMode = maximize ? 'max' : 'min'
+    console.log('[runDijkstra] modo:', maximize)
+    console.log('[runDijkstra] start/end:', this.dijkstraStart, this.dijkstraEnd)
+
+    if (!this.dijkstraStart || !this.dijkstraEnd) {
+      return Swal.fire({
+        icon: 'info',
+        title: 'Selecciona nodo inicio y fin'
+      })
+    }
+    this.edges = this.edges.map((e, i) => ({
+      id: e.id || `e${i + 1}`,
+      ...e
+    }))
+    console.log('[runDijkstra] edges tras asegurar IDs:', this.edges)
+    try {
+      console.log('[runDijkstra] llamando fetchDijkstraEdgeIds…')
+      this.dijkstraEdgeIds = await fetchDijkstraEdgeIds(
+        this.nodes,
+        this.edges,
+        this.dijkstraStart,
+        this.dijkstraEnd,
+        maximize
+      )
+      console.log('[runDijkstra] edge IDs recibidos:', this.dijkstraEdgeIds)
+        this.dijkstraColors = {}
+        this.dijkstraEdgeIds.forEach(id => {
+        const hue = Math.floor(Math.random() * 360)  // 0°–60° rojo→amarillo
+        this.dijkstraColors[id] = `hsl(${hue},100%,50%)`
+      })
+      console.log('[runDijkstra] colores asignados:', this.dijkstraColors)
+    } catch (err) {
+      console.error('[runDijkstra] ERROR:', err)
+      return Swal.fire({
+        icon: 'error',
+        title: 'Error en Dijkstra',
+        text: err.message
+      })
+    }
+
+    await this.$nextTick()
+    this.animateHighlightEdges()
+  },
+//------------------------------------------------------------
+    openBinaryTreePopup() {
+      console.log('Botón Árbol Binario presionado')
+      this.showBinaryTreePopup = true
+    },
+
     toggleHelp() {
       this.isHelpActive = !this.isHelpActive // Cambia el estado de isHelpActive
     },
     openMatrixPopup() {
       this.showMatrixPopup = true
     },
-    //Matriz-----------------------------------------------
+    //Matriz---------------
     async openMatrixPopup() {
       if (!this.nodes || this.nodes.length === 0) {
         Swal.fire({
@@ -458,167 +758,178 @@ export default {
       this.showMatrixPopup = false
     },
     checkGraphValidity() {
-    let errors = [];
-    // Construir mapas de entradas y salidas
-    const incoming = new Map();
-    const outgoing = new Map();
-    this.nodes.forEach(n => {
-      incoming.set(n.name, 0);
-      outgoing.set(n.name, 0);
-    });
-    this.edges.forEach(e => {
-      // Se asume que cada arista tiene propiedad weight y nodos identificados por name
-      outgoing.set(e.node1.name, outgoing.get(e.node1.name) + 1);
-      incoming.set(e.node2.name, incoming.get(e.node2.name) + 1);
-    });
-    // Nodo de inicio: sin entradas
-    const startNodes = this.nodes.filter(n => incoming.get(n.name) === 0);
-    if (startNodes.length === 0) {
-      errors.push("No se encontró un nodo de inicio (sin entradas).");
-    }
-    // Nodo final: sin salidas
-    const endNodes = this.nodes.filter(n => outgoing.get(n.name) === 0);
-    if (endNodes.length === 0) {
-      errors.push("No se encontró un nodo final (sin salidas).");
-    }
-    // Verifica que no haya ciclos (utilizando DFS)
-    if (this.hasCycle()) {
-      errors.push("El grafo tiene ciclos.");
-    }
-    // Verifica que no existan pesos negativos
-    const negativeEdge = this.edges.find(e => Number(e.weight) < 0);
-    if (negativeEdge) {
-      errors.push("El grafo tiene pesos negativos.");
-    }
-    return errors;
-  },
-
-  // Algoritmo DFS para detectar ciclos
-  hasCycle() {
-    const visited = new Set();
-    const recStack = new Set();
-    const adjList = new Map();
-    // Construir lista de adyacencia
-    this.nodes.forEach(n => {
-      adjList.set(n.name, []);
-    });
-    this.edges.forEach(e => {
-      adjList.get(e.node1.name).push(e.node2.name);
-    });
-    // Función auxiliar DFS
-    const dfs = (node) => {
-      if (recStack.has(node)) return true;
-      if (visited.has(node)) return false;
-      visited.add(node);
-      recStack.add(node);
-      const neighbors = adjList.get(node);
-      for (const nbr of neighbors) {
-        if (dfs(nbr)) return true;
+      let errors = []
+      // Construir mapas de entradas y salidas
+      const incoming = new Map()
+      const outgoing = new Map()
+      this.nodes.forEach((n) => {
+        incoming.set(n.name, 0)
+        outgoing.set(n.name, 0)
+      })
+      this.edges.forEach((e) => {
+        // Se asume que cada arista tiene propiedad weight y nodos identificados por name
+        outgoing.set(e.node1.name, outgoing.get(e.node1.name) + 1)
+        incoming.set(e.node2.name, incoming.get(e.node2.name) + 1)
+      })
+      // Nodo de inicio: sin entradas
+      const startNodes = this.nodes.filter((n) => incoming.get(n.name) === 0)
+      if (startNodes.length === 0) {
+        errors.push('No se encontró un nodo de inicio (sin entradas).')
       }
-      recStack.delete(node);
-      return false;
-    };
-    // Recorre cada nodo
-    for (const node of this.nodes.map(n => n.name)) {
-      if (dfs(node)) return true;
-    }
-    return false;
-  },
-  //NorthWest help---------------------------------------------------
-  runNorthWest() {
-    this.showNorthWestHelp = false
-    this.showNorthWestPopup = true
-  },
+      // Nodo final: sin salidas
+      const endNodes = this.nodes.filter((n) => outgoing.get(n.name) === 0)
+      if (endNodes.length === 0) {
+        errors.push('No se encontró un nodo final (sin salidas).')
+      }
+      // Verifica que no haya ciclos (utilizando DFS)
+      if (this.hasCycle()) {
+        errors.push('El grafo tiene ciclos.')
+      }
+      // Verifica que no existan pesos negativos
+      const negativeEdge = this.edges.find((e) => Number(e.weight) < 0)
+      if (negativeEdge) {
+        errors.push('El grafo tiene pesos negativos.')
+      }
+      return errors
+    },
+
+    // Algoritmo DFS para detectar ciclos
+    hasCycle() {
+      const visited = new Set()
+      const recStack = new Set()
+      const adjList = new Map()
+      // Construir lista de adyacencia
+      this.nodes.forEach((n) => {
+        adjList.set(n.name, [])
+      })
+      this.edges.forEach((e) => {
+        adjList.get(e.node1.name).push(e.node2.name)
+      })
+      // Función auxiliar DFS
+      const dfs = (node) => {
+        if (recStack.has(node)) return true
+        if (visited.has(node)) return false
+        visited.add(node)
+        recStack.add(node)
+        const neighbors = adjList.get(node)
+        for (const nbr of neighbors) {
+          if (dfs(nbr)) return true
+        }
+        recStack.delete(node)
+        return false
+      }
+      // Recorre cada nodo
+      for (const node of this.nodes.map((n) => n.name)) {
+        if (dfs(node)) return true
+      }
+      return false
+    },
+    //NorthWest help---------------------------------------------------
+    runNorthWest() {
+      this.showNorthWestHelp = false
+      this.showNorthWestPopup = true
+    },
 
     //Johnson-----------------------------------------------
     async runJohnson() {
-      const errors = this.checkGraphValidity();
+      const errors = this.checkGraphValidity()
       if (errors.length > 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Grafo inválido",
-        html: errors.join("<br>")
-      });
-      return;
-    }
-    try {
-        console.log("Iniciando el proceso de ejecución de Johnson...");
+        Swal.fire({
+          icon: 'error',
+          title: 'Grafo inválido',
+          html: errors.join('<br>'),
+        })
+        return
+      }
+      try {
+        console.log('Iniciando el proceso de ejecución de Johnson...')
 
-        const edgesFormatted = this.edges.map(edge => {
-            const sourceNode = this.nodes.find(n => n.id === edge.node1.id);
-            const targetNode = this.nodes.find(n => n.id === edge.node2.id);
+        const edgesFormatted = this.edges
+          .map((edge) => {
+            const sourceNode = this.nodes.find((n) => n.id === edge.node1.id)
+            const targetNode = this.nodes.find((n) => n.id === edge.node2.id)
 
             if (!sourceNode || !targetNode) {
-                console.error(`❌ Nodo no encontrado: ${!sourceNode ? edge.node1.id : edge.node2.id}`);
-                return null;
+              console.error(`❌ Nodo no encontrado: ${!sourceNode ? edge.node1.id : edge.node2.id}`)
+              return null
             }
 
-            console.log(`✅ Nodo encontrado: ${sourceNode.name} -> ${targetNode.name}, Peso: ${edge.weight}`);
+            console.log(
+              `✅ Nodo encontrado: ${sourceNode.name} -> ${targetNode.name}, Peso: ${edge.weight}`,
+            )
 
             return {
-                node1: { name: sourceNode.name },
-                node2: { name: targetNode.name },
-                weight: Number(edge.weight)
-            };
-        }).filter(edge => edge !== null);
+              node1: { name: sourceNode.name },
+              node2: { name: targetNode.name },
+              weight: Number(edge.weight),
+            }
+          })
+          .filter((edge) => edge !== null)
 
         if (edgesFormatted.length === 0) {
-            console.error("❌ No se encontraron aristas válidas después del formateo.");
-            Swal.fire({
-                icon: 'error',
-                title: 'Error en Johnson',
-                text: 'No se encontraron aristas válidas para procesar.'
-            });
-            return;
-        }
-
-        console.log("Aristas formateadas para enviar al backend:", JSON.stringify(edgesFormatted, null, 2));
-
-        const nodesFormatted = this.nodes.map(node => ({
-            id: node.id,
-            x: node.x,
-            y: node.y,
-            name: node.name,
-            color: node.color
-        }));
-
-        console.log("Nodos formateados para enviar al backend:", JSON.stringify(nodesFormatted, null, 2));
-
-        const response = await axios.post('http://127.0.0.1:5000/graph/johnson', {
-            nodes: nodesFormatted,
-            edges: edgesFormatted
-        });
-
-        console.log("📥 Respuesta recibida del backend:", response.data);
-
-        const { distances, h_values, critical_path, early_times, late_times, edges } = response.data;
-
-        if (!distances || !h_values || !critical_path || !early_times || !late_times || !edges) {
-            console.error("❌ Error: El formato de la respuesta del backend es incorrecto o faltan datos.");
-            throw new Error("El formato de la respuesta es incorrecto o faltan datos.");
-        }
-
-        this.johnsonResults = { 
-            distances, 
-            h_values, 
-            critical_path, 
-            early_times, 
-            late_times,
-            edges
-        };
-
-        console.log("✅ Johnson ejecutado correctamente. Resultados:", this.johnsonResults);
-        this.showJohnsonPopup = true;
-
-    } catch (error) {
-        console.error("❌ Error en Johnson:", error);
-        Swal.fire({
+          console.error('❌ No se encontraron aristas válidas después del formateo.')
+          Swal.fire({
             icon: 'error',
             title: 'Error en Johnson',
-            text: error.message || 'Error al procesar el grafo con Johnson.'
-        });
-    }
-},
+            text: 'No se encontraron aristas válidas para procesar.',
+          })
+          return
+        }
+
+        console.log(
+          'Aristas formateadas para enviar al backend:',
+          JSON.stringify(edgesFormatted, null, 2),
+        )
+
+        const nodesFormatted = this.nodes.map((node) => ({
+          id: node.id,
+          x: node.x,
+          y: node.y,
+          name: node.name,
+          color: node.color,
+        }))
+
+        console.log(
+          'Nodos formateados para enviar al backend:',
+          JSON.stringify(nodesFormatted, null, 2),
+        )
+
+        const response = await axios.post('http://127.0.0.1:5000/graph/johnson', {
+          nodes: nodesFormatted,
+          edges: edgesFormatted,
+        })
+
+        console.log('📥 Respuesta recibida del backend:', response.data)
+
+        const { distances, h_values, critical_path, early_times, late_times, edges } = response.data
+
+        if (!distances || !h_values || !critical_path || !early_times || !late_times || !edges) {
+          console.error(
+            '❌ Error: El formato de la respuesta del backend es incorrecto o faltan datos.',
+          )
+          throw new Error('El formato de la respuesta es incorrecto o faltan datos.')
+        }
+
+        this.johnsonResults = {
+          distances,
+          h_values,
+          critical_path,
+          early_times,
+          late_times,
+          edges,
+        }
+
+        console.log('✅ Johnson ejecutado correctamente. Resultados:', this.johnsonResults)
+        this.showJohnsonPopup = true
+      } catch (error) {
+        console.error('❌ Error en Johnson:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error en Johnson',
+          text: error.message || 'Error al procesar el grafo con Johnson.',
+        })
+      }
+    },
     closeJohnsonPopup() {
       console.log('Cerrando popup de Johnson desde el componente padre')
       this.showJohnsonPopup = false
@@ -1046,277 +1357,70 @@ export default {
         return { labelX, labelY }
       }
     },
-    // handleFileImport(event) {
-
-
-    //   const file = event.target.files[0]
-    //   if (!file) return
-
-    //   const reader = new FileReader()
-    //   reader.onload = (e) => {
-    //     try {
-    //       const data = JSON.parse(e.target.result)
-    //       if (data.nodes && data.edges) {
-    //         this.nodes = data.nodes
-    //         // creacion de mapa para buscar nodos por su id
-    //         const nodeMap = {}
-    //         this.nodes.forEach((node) => {
-    //           nodeMap[node.id] = node
-    //         })
-
-    //         // reasocia los nodos en cada arista y recalcula sus posiciones
-    //         this.edges = data.edges.map((edge) => {
-    //           return {
-    //             ...edge,
-    //             node1: nodeMap[edge.node1.id],
-    //             node2: nodeMap[edge.node2.id],
-    //             calculated: this.calculateEdgePosition(
-    //               nodeMap[edge.node1.id],
-    //               nodeMap[edge.node2.id],
-    //             ),
-    //           }
-    //         })
-    //         console.log('Grafo importado exitosamente')
-    //       } else {
-    //         console.error('El archivo JSON no tiene el formato correcto.')
-    //       }
-    //     } catch (error) {
-    //       console.error('Error al importar el archivo JSON:', error)
-    //     }
-    //   }
-    //   reader.readAsText(file)
-    // },
-
     // Botón para resolver la asignación; mode = 'min' o 'max'
     handleFileImport(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+      const file = event.target.files[0]
+      if (!file) return
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
         try {
-            const data = JSON.parse(e.target.result);
+          const data = JSON.parse(e.target.result)
 
-            if (data.nodes && data.edges) {
-                // Cargar nodos
-                this.nodes = data.nodes.map(node => ({
-                    id: node.id,
-                    x: node.x,
-                    y: node.y,
-                    name: node.name,
-                    color: node.color
-                }));
+          if (data.nodes && data.edges) {
+            // Cargar nodos
+            this.nodes = data.nodes.map((node) => ({
+              id: node.id,
+              x: node.x,
+              y: node.y,
+              name: node.name,
+              color: node.color,
+            }))
 
-                // Crear un mapa para acceder a los nodos por su nombre
-                const nodeMap = {};
-                this.nodes.forEach(node => {
-                    nodeMap[node.name] = node;  // Mapear usando 'name' en lugar de 'id'
-                });
+            // Crear un mapa para acceder a los nodos por su nombre
+            const nodeMap = {}
+            this.nodes.forEach((node) => {
+              nodeMap[node.name] = node // Mapear usando 'name' en lugar de 'id'
+            })
 
-                // Cargar aristas y calcular sus posiciones
-                this.edges = data.edges.map(edge => {
-                    const sourceNode = nodeMap[edge.node1.name];  // Buscar por 'name'
-                    const targetNode = nodeMap[edge.node2.name];  // Buscar por 'name'
-                    
-                    if (!sourceNode || !targetNode) {
-                        console.error("Error al encontrar nodos para arista: ", edge);
-                        return null;
-                    }
+            // Cargar aristas y calcular sus posiciones
+            this.edges = data.edges
+              .map((edge) => {
+                const sourceNode = nodeMap[edge.node1.name] // Buscar por 'name'
+                const targetNode = nodeMap[edge.node2.name] // Buscar por 'name'
 
-                    // Generar la propiedad 'calculated' usando tu método existente
-                    const calculatedPositions = this.calculateEdgePosition(sourceNode, targetNode);
+                if (!sourceNode || !targetNode) {
+                  console.error('Error al encontrar nodos para arista: ', edge)
+                  return null
+                }
 
-                    return {
-                        node1: sourceNode,
-                        node2: targetNode,
-                        weight: edge.weight,
-                        direction: edge.direction || 'directed',
-                        color: edge.color || '#000000',
-                        calculated: calculatedPositions  // Generar las posiciones calculadas
-                    };
-                }).filter(edge => edge !== null); // Filtrar aristas inválidas
+                // Generar la propiedad 'calculated' usando tu método existente
+                const calculatedPositions = this.calculateEdgePosition(sourceNode, targetNode)
 
-                console.log("✅ Grafo importado exitosamente");
-            } else {
-                console.error("❌ El archivo JSON no tiene el formato correcto.");
-            }
+                return {
+                  node1: sourceNode,
+                  node2: targetNode,
+                  weight: edge.weight,
+                  direction: edge.direction || 'directed',
+                  color: edge.color || '#000000',
+                  calculated: calculatedPositions, // Generar las posiciones calculadas
+                }
+              })
+              .filter((edge) => edge !== null) // Filtrar aristas inválidas
+
+            console.log('✅ Grafo importado exitosamente')
+          } else {
+            console.error('❌ El archivo JSON no tiene el formato correcto.')
+          }
         } catch (error) {
-            console.error("❌ Error al importar el archivo JSON:", error);
+          console.error('❌ Error al importar el archivo JSON:', error)
         }
-    };
-    reader.readAsText(file);
-},    
-    solveAssignment(mode) {
-      this.assignmentMode = mode
-      // Paso 1: Detectar grupos automáticamente
-      if (!this.detectBipartiteGroups()) {
-        alert('El grafo no es bipartito. No se puede calcular la asignación automáticamente.')
-        return
       }
-      // Paso 2: Construir la matriz de asignación
-      this.buildAssignmentMatrix()
-      // Paso 3: Resolver el problema usando el algoritmo húngaro
-      const result = this.hungarianAlgorithm(this.assignmentMatrix)
-      // Result es un objeto { cost, assignment } donde assignment es un arreglo de índices
-      this.totalCost = result.cost
-      this.optimalAssignment = []
-      this.highlightedEdges = []
-      result.assignment.forEach((j, i) => {
-        const nodeA = this.groupA[i]
-        const nodeB = this.groupB[j]
-        // El costo original se obtiene de la matriz de asignación original
-        const cost = this.assignmentMatrix[i][j]
-        this.optimalAssignment.push({ nodeA, nodeB, cost })
-        // Resaltar la arista entre estos nodos, si existe
-        const edge = this.edges.find(
-          (e) =>
-            (e.node1.name === nodeA.name && e.node2.name === nodeB.name) ||
-            (e.node1.name === nodeB.name && e.node2.name === nodeA.name),
-        )
-        if (edge) {
-          this.highlightedEdges.push(edge)
-        }
-      })
-      // Mostrar el modal con los resultados
+      reader.readAsText(file)
+    },
+    openAssignmentModal() {
       this.showAssignmentModal = true
     },
-
-    // Método para detectar los grupos (bipartición) usando BFS
-    detectBipartiteGroups() {
-      // Inicializar grupos
-      const color = {} // key: node.name, value: 0 o 1
-      const queue = []
-      // Tomamos el primer nodo y lo asignamos a 0 (Grupo A)
-      if (this.nodes.length === 0) return false
-      color[this.nodes[0].name] = 0
-      queue.push(this.nodes[0])
-      while (queue.length) {
-        const node = queue.shift()
-        // Buscar vecinos: consideramos los nodos conectados por aristas
-        const neighbors = this.edges.reduce((acc, edge) => {
-          if (edge.node1.name === node.name) acc.push(edge.node2)
-          else if (edge.node2.name === node.name) acc.push(edge.node1)
-          return acc
-        }, [])
-        neighbors.forEach((neighbor) => {
-          if (color[neighbor.name] === undefined) {
-            color[neighbor.name] = 1 - color[node.name]
-            queue.push(neighbor)
-          } else if (color[neighbor.name] === color[node.name]) {
-            // El grafo no es bipartito
-            return false
-          }
-        })
-      }
-      // Separar nodos en dos grupos
-      this.groupA = this.nodes.filter((node) => color[node.name] === 0)
-      this.groupB = this.nodes.filter((node) => color[node.name] === 1)
-      // Verificar que ambos grupos tengan al menos un nodo
-      return this.groupA.length > 0 && this.groupB.length > 0
-    },
-
-    // Construir la matriz de asignación a partir de groupA y groupB
-    buildAssignmentMatrix() {
-      // Inicializar matriz con valores altos (infinito) para representar ausencia de conexión
-      const INF = 1e9
-      const matrix = []
-      // Se asume que, para cada par (nodeA, nodeB), si existe una arista, se usa su peso; si no, INF
-      for (let i = 0; i < this.groupA.length; i++) {
-        const row = []
-        for (let j = 0; j < this.groupB.length; j++) {
-          // Buscar una arista entre groupA[i] y groupB[j]
-          const edge = this.edges.find(
-            (e) =>
-              (e.node1.name === this.groupA[i].name && e.node2.name === this.groupB[j].name) ||
-              (e.node1.name === this.groupB[j].name && e.node2.name === this.groupA[i].name),
-          )
-          row.push(edge ? Number(edge.weight) : INF)
-        }
-        matrix.push(row)
-      }
-      // Si se selecciona maximización, transformamos la matriz
-      if (this.assignmentMode === 'max') {
-        let maxVal = 0
-        matrix.forEach((row) =>
-          row.forEach((val) => {
-            if (val < INF && val > maxVal) maxVal = val
-          }),
-        )
-        for (let i = 0; i < matrix.length; i++) {
-          for (let j = 0; j < matrix[i].length; j++) {
-            if (matrix[i][j] < INF) {
-              matrix[i][j] = maxVal - matrix[i][j]
-            }
-          }
-        }
-      }
-      this.assignmentMatrix = matrix
-    },
-
-    // Implementación simple del Algoritmo Húngaro
-    hungarianAlgorithm(matrix) {
-      // Esta implementación es para fines demostrativos.
-      // Se espera que matrix sea un arreglo 2D.
-      // Retorna un objeto { cost, assignment }.
-      const n = matrix.length
-      const m = matrix[0].length
-      // Para simplicidad, asumimos n === m, de lo contrario se debe ajustar.
-      const u = Array(n + 1).fill(0)
-      const v = Array(m + 1).fill(0)
-      const p = Array(m + 1).fill(0)
-      const way = Array(m + 1).fill(0)
-
-      for (let i = 1; i <= n; i++) {
-        p[0] = i
-        let minv = Array(m + 1).fill(1e9)
-        const used = Array(m + 1).fill(false)
-        let j0 = 0
-        do {
-          used[j0] = true
-          const i0 = p[j0]
-          let delta = 1e9
-          let j1 = 0
-          for (let j = 1; j <= m; j++) {
-            if (!used[j]) {
-              const cur = matrix[i0 - 1][j - 1] - u[i0] - v[j]
-              if (cur < minv[j]) {
-                minv[j] = cur
-                way[j] = j0
-              }
-              if (minv[j] < delta) {
-                delta = minv[j]
-                j1 = j
-              }
-            }
-          }
-          for (let j = 0; j <= m; j++) {
-            if (used[j]) {
-              u[p[j]] += delta
-              v[j] -= delta
-            } else {
-              minv[j] -= delta
-            }
-          }
-          j0 = j1
-        } while (p[j0] !== 0)
-        do {
-          const j1 = way[j0]
-          p[j0] = p[j1]
-          j0 = j1
-        } while (j0)
-      }
-      const assignment = Array(n).fill(0)
-      for (let j = 1; j <= m; j++) {
-        assignment[p[j] - 1] = j - 1
-      }
-      const cost = -v[0]
-      return { cost, assignment }
-    },
-
-    closeAssignmentModal() {
-      this.showAssignmentModal = false
-    },
-
     exportData() {
       const jsonData = JSON.stringify({ nodes: this.nodes, edges: this.edges }, null, 2)
       const blob = new Blob([jsonData], { type: 'application/json' })
@@ -1348,7 +1452,7 @@ export default {
   display: flex;
   width: 95vw;
   height: 95vh;
-  background: #555B6E;
+  background: #555b6e;
   position: absolute;
   top: 59%;
   left: 50%;
@@ -1358,7 +1462,7 @@ export default {
 
 .content {
   flex-grow: 1;
-  background: #FAF9F9;
+  background: #faf9f9;
   margin: 20px;
   padding: 20px;
   margin-bottom: 100px;
@@ -1385,7 +1489,7 @@ export default {
 
 .bottom-bar {
   height: 50px;
-  background: #89B0AE;
+  background: #89b0ae;
   position: absolute;
   bottom: 20px;
   left: 57%;
@@ -1401,16 +1505,16 @@ export default {
 .menu-button {
   width: 40px;
   height: 40px;
-  background: #BEE3DB;
+  background: #bee3db;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: 0.3s;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 20px;
-  color: white;
+  color: #555b6e;
   position: relative;
 }
 
@@ -1452,7 +1556,7 @@ export default {
   cursor: pointer;
   border: none;
   border-radius: 5px;
-  transition: background 0.3s;
+  transition: 0.3s;
 }
 
 .cancel-button {
@@ -1616,14 +1720,12 @@ export default {
 .menu-button.export-button {
   width: 90px;
   height: 40px;
-  background: #FFD6BA;
-  color: #fff;
+  background: #ffd6ba;
+  color: #555b6e;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition:
-    background 0.3s,
-    transform 0.2s;
+  transform: 0.2s;
   font-size: 14px;
   font-weight: bold;
 }
@@ -1647,13 +1749,13 @@ export default {
 }
 .edge-path:hover {
   stroke-width: 3;
-  stroke: #ff0000;
+  stroke: #110b26;
 }
 /*sidebar*/
 .sidebar {
   width: 150px;
   height: 60%;
-  background: #89B0AE;
+  background: #89b0ae;
   margin: 20px;
   margin-top: 70px;
   border-radius: 10px;
@@ -1671,13 +1773,13 @@ export default {
   height: 2cm;
   border: none;
   border-radius: 10px;
-  background-color: #BEE3DB;
-  color: white;
+  background-color: #bee3db;
+  color: #555b6e;
   font-size: 12px;
   cursor: pointer;
   transition:
-    background 0.3s,
-    transform 0.2s;
+  background 0.3s,
+  transform 0.2s;
 }
 .sidebar-button:hover {
   background-color: #92cdc0;
@@ -1725,57 +1827,6 @@ export default {
   cursor: nwse-resize;
   align-self: flex-end;
 }
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 600px;
-  width: 90%;
-}
-.matrix-container {
-  overflow-x: auto;
-  margin-bottom: 10px;
-}
-.matrix-container table {
-  border-collapse: collapse;
-  width: 100%;
-}
-.matrix-container th,
-.matrix-container td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-}
-.assignment-result ul {
-  list-style: none;
-  padding: 0;
-}
-.close-button {
-  background: #d776e4;
-  color: #fff;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-.close-button:hover {
-  background: #c06ab8;
-}
-
 /* NAVBAR */
 .navbar {
   display: flex;
@@ -1801,5 +1852,102 @@ export default {
   color: var(--text-color);
   text-decoration: none;
   font-weight: bold;
+}
+
+.highlight-cell {
+  background-color: #c7efcf;
+  font-weight: bold;
+  color: #000;
+  border: 2px solid #4a78a2;
+}
+/*------------------------------------------------------------*/
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.graph-preview {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+}
+.graph-preview .node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+}
+.graph-preview .edges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.close-btn {
+  margin-top: 1rem;
+  background: #d776e4;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Ventana emergente estilo dialog */
+.popup-window {
+  border: none;
+  border-radius: 8px;
+  padding: 1rem;
+  width: 80vw;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.mode-btn {
+  background: #558ebc;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  margin-right: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.mode-btn:hover {
+  background: #4a78a2;
 }
 </style>
