@@ -72,7 +72,7 @@
           />
           <p>Representación compacta de grafos mediante matrices.</p>
           <div class="card-buttons">
-            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+            <router-link to="/matriz-adyacente-info" class="cta-button scale-up">Conocer más</router-link>
             <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
           </div>
         </div>
@@ -85,7 +85,7 @@
           />
           <p>Método inicial para problemas de transporte.</p>
           <div class="card-buttons">
-            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+            <router-link to="/northwest-info" class="cta-button scale-up">Conocer más</router-link>
             <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
           </div>
         </div>
@@ -98,7 +98,7 @@
           />
           <p>Encuentra caminos más cortos entre todos los pares de nodos.</p>
           <div class="card-buttons">
-            <router-link to="#" class="cta-button scale-up">Conocer más</router-link>
+            <router-link to="/johnson-info" class="cta-button scale-up">Conocer más</router-link>
             <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
           </div>
         </div>
