@@ -177,7 +177,7 @@
           {{ node.name }}
         </div>
         <!-- Duplicado del canvas: aristas -->
-        <svg class="edges">
+         <svg class="edges" :key="mstEdgeIds.join('-')">
           <marker
             id="arrow"
             viewBox="0 0 10 10"
@@ -189,23 +189,19 @@
           >
             <path d="M 0 0 L 10 5 L 0 10 z" fill="black" />
           </marker>
-          <g v-for="(edge, i) in previewEdges" :key="'k-edge-' + i">
-            <line
-              :id="'mst-edge-'+edge.id ? 'mst-edge-'+edge.id : null"
-              :class="mstEdgeIds.includes(edge.id) ? 'mst-edge' : ''" 
-              :x1="edge.calculated.startX"
-              :y1="edge.calculated.startY"
-              :x2="edge.calculated.endX"
-              :y2="edge.calculated.endY"
+          <g v-for="(edge, i) in previewEdges" :key="'d-edge-' + i">
+             <path
+              :id="mstEdgeIds.includes(edge.id) ? `mst-edge-${edge.id}` : null"
+              :d="generateEdgePath(edge)"
               :stroke="edge.color"
+              fill="none"
               stroke-width="2"
-              class="mst-edge"
-              :marker-end="edge.direction === 'directed' ? 'url(#arrow)' : ''"
-            />
+              :class="{ 'mst-edge': mstEdgeIds.includes(edge.id) }"
+        />
             <!-- peso en el punto medio -->
             <text
-              :x="(edge.calculated.startX + edge.calculated.endX) / 2"
-              :y="(edge.calculated.startY + edge.calculated.endY) / 2 - 5"
+             :x="generateEdgeLabelPosition(edge).labelX"
+              :y="generateEdgeLabelPosition(edge).labelY"
               fill="#000"
               font-size="10"
               text-anchor="middle"
@@ -251,7 +247,9 @@
           {{ node.name }}
         </div>
         <!-- Duplicado del canvas: aristas -->
-        <svg class="edges">
+                  <svg class="edges" :key="dijkstraEdgeIds.join('-')">
+
+               <defs>
           <marker
             id="arrow"
             viewBox="0 0 10 10"
@@ -263,26 +261,25 @@
           >
             <path d="M 0 0 L 10 5 L 0 10 z" fill="black" />
           </marker>
+           </defs>
           <g v-for="(edge, i) in previewEdges" :key="'d-edge-' + i">
-            <line
-              :id="dijkstraEdgeIds.includes(edge.id) ? 'mst-edge-'+edge.id : null"
-              :class="dijkstraEdgeIds.includes(edge.id) ? 'mst-edge' : ''"
-              :x1="edge.calculated.startX"
-              :y1="edge.calculated.startY"
-              :x2="edge.calculated.endX"
-              :y2="edge.calculated.endY"
+             <path
+              :id="dijkstraEdgeIds.includes(edge.id) ? 'mst-edge-' + edge.id : null"
+              :d="generateEdgePath(edge)"
               :stroke="edge.color"
+              fill="none"
               stroke-width="2"
               :marker-end="edge.direction === 'directed' ? 'url(#arrow)' : ''"
-            />
+              :class="{ 'mst-edge': dijkstraEdgeIds.includes(edge.id) }"
+        />
             <!-- peso -->
             <text
-              :x="(edge.calculated.startX + edge.calculated.endX) / 2"
-              :y="(edge.calculated.startY + edge.calculated.endY) / 2 - 5"
+              :x="generateEdgeLabelPosition(edge).labelX"
+              :y="generateEdgeLabelPosition(edge).labelY"
               fill="#000"
               font-size="10"
               text-anchor="middle"
-            >
+                >
               {{ edge.weight }}
             </text>
           </g>
@@ -577,17 +574,25 @@ export default {
     },
 
 //-----------------------------------------------------------------
-    // Genera edges con cálculo de posiciones para los previews
-    previewEdges() {
-      //return colorEdges(this.edges, this.mstEdgeIds,this.mstColors)
-      const ids = this.activeAlgorithm === 'dijkstra'
+     previewEdges() {
+    const ids = this.activeAlgorithm === 'dijkstra'
       ? this.dijkstraEdgeIds
-      : this.mstEdgeIds
-const colors = this.activeAlgorithm === 'dijkstra'
-                     ? this.dijkstraColors
-                       : this.mstColors
-      return colorEdges(this.edges, ids, colors)
-    },
+      : this.mstEdgeIds;
+    const colors = this.activeAlgorithm === 'dijkstra'
+      ? this.dijkstraColors
+      : this.mstColors;
+    return this.edges.map(edge => {
+      const calculated = this.calculateEdgePosition(edge.node1, edge.node2);
+      const e = {
+        ...edge,
+        calculated,
+        color: ids.includes(edge.id) ? colors[edge.id] : edge.color,
+      };
+      this.generateEdgePath(e);  
+
+      return e;
+    });
+  }
   },
 //------------------------------------------------------------
   methods: {
@@ -634,41 +639,43 @@ const colors = this.activeAlgorithm === 'dijkstra'
           })
         }
         await this.$nextTick()
+          await this.$nextTick();
+
         this.animateHighlightEdges() 
     },
 
   //------------------------------------------------------
 animateHighlightEdges() {
     const algo = this.activeAlgorithm
-    console.log('[animateHighlightEdges] algoritmo activo:', algo)
+    // console.log('[animateHighlightEdges] algoritmo activo:', algo)
 
-    const dlg = algo === 'dijkstra'
+    const dlg =  algo  === 'dijkstra'
       ? this.$refs.dijkstraDialog
       : this.$refs.kruskalDialog
 
     // 1) reset
-    dlg.querySelectorAll('svg.edges line').forEach(line => {
-      gsap.killTweensOf(line)
-      line.style.strokeDasharray  = ''
-      line.style.strokeDashoffset = ''
+    dlg.querySelectorAll('svg.edges path').forEach(pathEl  => {
+      gsap.killTweensOf(pathEl)
+      pathEl.style.strokeDasharray  = ''
+      pathEl.style.strokeDashoffset = ''
     })
 
     // 2) animar sólo resaltadas
     const edgeIds = algo === 'dijkstra'
       ? this.dijkstraEdgeIds
-      : this.mstEdgeIds
+      : this.mstEdgeIds;
 
     console.log('[animateHighlightEdges] vamos a animar IDs:', edgeIds)
 
     edgeIds.forEach(id => {
-      const ln = dlg.querySelector(`#mst-edge-${id}`)
-      if (!ln) {
+      const el = dlg.querySelector(`#mst-edge-${id}`)
+      if (!el) {
         console.warn(`[animateHighlightEdges] no encontré línea mst-edge-${id}`)
         return
       }
-      const len = ln.getTotalLength()
-      gsap.set(ln, { strokeDasharray: len, strokeDashoffset: len })
-      gsap.to(ln, {
+      const len = el.getTotalLength()
+      gsap.set(el, { strokeDasharray: len, strokeDashoffset: len })
+      gsap.to(el, {
         strokeDashoffset: 0,
         duration: 1.5,
         ease: 'none',
@@ -729,7 +736,7 @@ async runDijkstra(maximize) {
         text: err.message
       })
     }
-
+  await this.$nextTick();
     await this.$nextTick()
     this.animateHighlightEdges()
   },
@@ -1397,29 +1404,33 @@ async runDijkstra(maximize) {
 
             // Cargar aristas y calcular sus posiciones
             this.edges = data.edges
-              .map((edge) => {
-                const sourceNode = nodeMap[edge.node1.name] // Buscar por 'name'
-                const targetNode = nodeMap[edge.node2.name] // Buscar por 'name'
+              .map((edgeData) => {
+                const sourceNode = nodeMap[edgeData.node1.name] // Buscar por 'name'
+                const targetNode = nodeMap[edgeData.node2.name] // Buscar por 'name'
 
                 if (!sourceNode || !targetNode) {
-                  console.error('Error al encontrar nodos para arista: ', edge)
+                  console.error('Error al encontrar nodos para arista: ', edgeData)
                   return null
                 }
 
                 // Generar la propiedad 'calculated' usando tu método existente
-                const calculatedPositions = this.calculateEdgePosition(sourceNode, targetNode)
+              const calculated = this.calculateEdgePosition(sourceNode, targetNode)
 
-                return {
-                  node1: sourceNode,
-                  node2: targetNode,
-                  weight: edge.weight,
-                  direction: edge.direction || 'directed',
-                  color: edge.color || '#000000',
-                  calculated: calculatedPositions, // Generar las posiciones calculadas
-                }
-              })
-              .filter((edge) => edge !== null) // Filtrar aristas inválidas
+ const newEdge = {
+                node1: sourceNode,
+                node2: targetNode,
+                weight: edgeData.weight,
+                direction: edgeData.direction || 'directed',
+                color: edgeData.color || '#000000',
+                calculated,  // { x1, y1, x2, y2, … }
+              }
 
+              // 3c) Llamamos a generateEdgePath para que genere también edge.controlPoints
+              this.generateEdgePath(newEdge)
+
+              return newEdge
+            })
+            .filter((e) => e !== null)
             console.log('✅ Grafo importado exitosamente')
           } else {
             console.error('❌ El archivo JSON no tiene el formato correcto.')
