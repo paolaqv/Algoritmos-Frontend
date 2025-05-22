@@ -60,10 +60,8 @@ const steps = [
 
   `✅ <strong>Paso 2:</strong> Selecciona el criterio de optimización, maximizar o minimizar.`,
 
-  `✅ <strong>Paso 3:</strong> Se seleccionarán las aristas más livianas una por una, siempre y cuando no formen un ciclo con las ya seleccionadas.`,
-
-  `✅ <strong>Paso 4:</strong> El proceso termina cuando todos los nodos están conectados en un solo árbol. 
-  El resultado es el Árbol de Expansión Mínima (MST), que conecta todos los nodos con el menor costo total.`,
+  `✅ <strong>Paso 3:</strong> El proceso termina cuando todos los nodos están conectados en un solo árbol. 
+  El resultado es el Árbol de Expansión Mínima (MST), que conecta todos los nodos.`,
 ]
 </script>
 
