@@ -5,6 +5,9 @@
       <li><router-link to="/">Inicio</router-link></li>
       <li><router-link to="/graphs">Grafos</router-link></li>
       <li><router-link to="/sort">Ordenamiento</router-link></li>
+      <button class="matlab-btn" @click="openMatlab">
+        <i class="fas fa-calculator"></i> MATLAB Tools
+      </button>
       <li><router-link to="#">Contacto</router-link></li>
     </ul>
   </nav>
@@ -72,7 +75,9 @@
           />
           <p>Representación compacta de grafos mediante matrices.</p>
           <div class="card-buttons">
-            <router-link to="/matriz-adyacente-info" class="cta-button scale-up">Conocer más</router-link>
+            <router-link to="/matriz-adyacente-info" class="cta-button scale-up"
+              >Conocer más</router-link
+            >
             <router-link to="/graphs" class="cta-button scale-up">Ir al algoritmo</router-link>
           </div>
         </div>
@@ -185,7 +190,11 @@
   </footer>
 </template>
 
-<script setup lang="ts"></script>
+<script setup>
+const openMatlab = () => {
+  window.open('http://localhost:5000/matlab', '_blank') // URL directa del backend
+}
+</script>
 
 <style>
 /* COLORES */
