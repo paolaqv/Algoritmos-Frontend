@@ -6,6 +6,7 @@
         <li><router-link to="/">Inicio</router-link></li>
         <li><router-link to="/graphs">Grafos</router-link></li>
         <li><router-link to="/sort">Ordenamiento</router-link></li>
+        <li><router-link to="/sort">Noche de Museos</router-link></li>
         <li><router-link to="#">Contacto</router-link></li>
       </ul>
     </nav>
@@ -441,7 +442,6 @@ import axios from 'axios'
 import Swal from 'sweetalert2'
 import gsap from 'gsap'
 import '@/assets/css/DijsktraKruskalPopup.css'
-
 import JohnsonPopup from '../components/JohnsonPopup.vue'
 import NorthWestPopup from '../components/NorthWestPopup.vue'
 import HelpNorthWest from '../components/HelpNorthWest.vue'

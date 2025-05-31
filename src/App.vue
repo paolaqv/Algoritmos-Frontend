@@ -1,7 +1,14 @@
-<script setup lang="ts">
-import { RouterView } from 'vue-router'
-</script>
-
+<!-- src/App.vue -->
 <template>
-  <RouterView />
+  <router-view class="app-view"/>
 </template>
+
+<style>
+html, body, #app {
+  height: 100%;
+  margin: 0;
+}
+.app-view {
+  height: 100%;
+}
+</style>

@@ -2,10 +2,12 @@ import { createRouter, createWebHistory } from 'vue-router'
 import GraphsPage from '../views/GraphsPage.vue'
 import LandingPage from '../views/LandingPage.vue'
 import SortPage from '../views/SortPage.vue'
-import MatrizAdyacenteInfo from '../views/MatrizAdyacenteInfo.vue' // 👈 Asegúrate que esta línea existe
+import MatrizAdyacenteInfo from '../views/MatrizAdyacenteInfo.vue' 
 import NorthWest from '../views/NorthWest.vue'
 import JohnsonInfo from '../views/JohnsonInfo.vue'
 
+import MuseumPage from "../views/MuseumPage.vue";
+import MuseMap from "../views/MuseMap.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -38,7 +40,18 @@ const router = createRouter({
       path: '/johnson-info', 
       name: 'JohnsonInfo',
       component: JohnsonInfo,
-    }
+     },
+    {
+      path: '/noche',
+      name: 'MuseumPage',
+      component: MuseumPage,
+    },
+    {
+      path: '/map',
+      name: 'MuseMap',
+      component: MuseMap,
+    },
+
   ],
 })
 

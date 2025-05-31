@@ -8,6 +8,7 @@
       <button class="matlab-btn" @click="openMatlab">
         <i class="fas fa-calculator"></i> MATLAB Tools
       </button>
+      <li><router-link to="/noche">noche de Museos</router-link></li>
       <li><router-link to="#">Contacto</router-link></li>
     </ul>
   </nav>
